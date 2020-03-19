@@ -601,7 +601,7 @@ std::cout << *P;	//输出: 0
     constexpr int *p1 = &j;			// p1 is a constant pointer to the int j
     ```
 
-# 5处理类型
+# 5.处理类型
 
 * 随着程序越来越复杂, 使用的类型也越来越复杂, 导致
   * 难以确定原本的含义
