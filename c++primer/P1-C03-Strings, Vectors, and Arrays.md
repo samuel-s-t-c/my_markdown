@@ -441,8 +441,6 @@ int (&arrRef)[10] = arr; //arrRef refers to an array of ten ints
 
 数组的特性: 在很多使用数组的场合, 编译器自动将数组替换指针, 该指针指向数组的第一个元素.
 
-会发生上述转换的场合:
-
 * 在大多数表达式中, 数组对象被替换为指向首元素的指针; 
 
 ```c++
@@ -455,6 +453,8 @@ auto var(nums);					// var is an string* that point to the first element
 不会发生上述转换的场合:
 
 * 使用`decltype`时: 假设`arr`是数组类型, `decltype(arr)`返回数组类型.
+* 使用`sizeof`运算符时: 返回数组的字节数
+* 更多
 
 ### 指向数组元素的指针是迭代器
 
