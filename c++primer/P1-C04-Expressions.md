@@ -510,7 +510,7 @@
 | L      |       `.`        | 成员选择                   |  L   | `obejct.member`         |
 | L      |       `->`       | 成员选择                   |  L   | `pointer->member`       |
 | L      |       `[]`       | 下标                       |      | `expr[expr]`            |
-| L      |       `()`       | 函数调用                   |      | `name(expr_list)`       |
+| L      |       `()`       | 函数调用                   | L/R  | `name(expr_list)`       |
 | L      |       `()`       | 类型转换                   |  ?   | `type(expr_list)`       |
 |        |                  |                            |      |                         |
 | R      |       `++`       | 后置递增运算               |  R   | `lvalue++`              |
@@ -535,7 +535,7 @@
 | R      |     `new[]`      | allocate array/分配数组    |      | `new type[size]`        |
 | R      |     `delete`     | deallocate object/释放对象 |      | `delete expr`           |
 | R      |    `delete[]`    | 释放数组                   |      | `delete[] expr`         |
-| R      |    `noexcept`    | 允许抛出异常               |      | `noexcept(expr)`        |
+| R      |    `noexcept`    | 能否抛出异常               |      | `noexcept(expr)`        |
 |        |                  |                            |      |                         |
 | L      |      `->*`       | 指向成员选择的指针         |      | `ptr->*ptr_to_member`   |
 | L      |       `.*`       | 指向成员选择的指针         |      | `obj.*ptr_to_member`    |
@@ -576,7 +576,7 @@
 | R      |  `<<=`, `>>=`,   | 同上                       |  L   |                         |
 | R      |  `&=`,`=`, `^=`  | 同上                       |  L   |                         |
 |        |                  |                            |      |                         |
-| R      |     `throw`      | 抛出异常                   |      | `throw expr`            |
+| R      |     `throw`      | 抛出异常                   |  ?   | `throw expr`            |
 |        |                  |                            |      |                         |
 | L      |       `,`        | 逗号                       | L/R  | `expr, expr`            |
 
