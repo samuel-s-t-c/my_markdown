@@ -510,7 +510,7 @@ C风格字符串, 存放在字符数组中并空终止(**null terminated**). 空
 
 注意:
 
-* C风格字符串不是类型, 是用于表示字符串的结构, 是表达和使用字符串的公约(convention).
+* C风格字符串不是类型, 是用于表示字符串的结构, 是表达和使用字符串的规范(convention).
 
 ### C库字符串函数(C Library String Functions)
 
