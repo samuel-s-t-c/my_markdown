@@ -415,8 +415,9 @@ a2 = a;					//error: cannot assign one array to another
 
 修饰符: 用于修饰名字的类型
 
-* 优先度: `[ ]` > ` * `, `&`; 可以使用小括号改变顺序.
-* 结合性: 从右向左
+* 默认情况下 `[ ]`修饰符比 ` * `修饰符, `&`修饰符先绑定
+* 默认情况下类型修饰符从右向左依次绑定
+* 可以使用小括号改变顺序.
 
 ```c++
 int *ptrs[10]; 			 //ptrs is an array of ten pointers to int
