@@ -330,7 +330,7 @@
   * `sizeof`运算符不会对操作数求值
     * 如`sizeof *p`, 该表达式不会解引用`p`指针, 所以`p`就算是一个无效的指针也不会有影响
   * (C++11)在`sizeof`运算符中, 允许使用`::`运算符来获取类成员的大小, 不需要提供具体的对象
-    * `sizeof string::empty`; 其中`string`是类类型, `empty`是一个函数成员.
+    * `sizeof string::empty`; 其中`string`是类类型, `empty`是一个成员函数.
   * `sizeof`运算符的结果部分地依赖于其作用的类型
     * `sizeof char`的结果保证为1
     * `sizeof`一个引用类型, 得到被引用对象的字节数
