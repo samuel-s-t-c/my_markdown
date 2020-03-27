@@ -1,6 +1,13 @@
 # 总结
 
-如何定义类
+类
+
+* 数据抽象方面: 数据成员, 函数成员, 非成员的接口函数
+  * 构造, 拷贝, 赋值, 析构
+  * 可变, 静态
+* 封装方面
+  * 访问控制
+  * 友元
 
 [toc]
 
@@ -932,11 +939,135 @@ item.combine("9-999-99999-9");
 
 > 类有时候需要一些成员与类本身直接相关, 而不是与类的对象相关的
 
-### 声明静态成员
+* 类的静态成员存在于任何对象之外; 
+* 对象中不包含任何与静态成员有关的数据
+* 静态成员函数也是静态成员, 不与任何对象绑定
+  * 具体的说, 静态成员函数不包含`this`指针, 因此不能声明为`const`成员函数, 不能在`static`函数体内使用`this`指针
 
-### 使用静态成员
+以`Account`类为例子, 介绍静态成员
 
-### 定义静态成员
+```c++
+class Account {
+public:
+    void calculate() { amount += amount * interestRate; }
+    static double rate() { return interestRate; }
+    static void rate(double);
+private:
+    std::string owner;
+    double amount;
+    static double interestRate;
+    static double initRate();
+};
+```
 
-### 静态成员的类内初始化
+## 声明静态成员
+
+* 方法: 在成员声明中加入`static`关键字
+* 说明
+  * 静态成员可以是`public`或`private`, 静态成员的类型没有限制
+* 例子: 上面的`Account`类的部分定义
+
+## 使用静态成员
+
+* 方法: 
+
+  * 通过作用域运算符访问静态成员, 形如`class_name::static_mem`
+
+    * 例子
+
+      ```c++
+      double r;
+      r = Account::rate();
+      ```
+
+  * 对象可以访问静态成员
+
+    * 例子
+
+      ```c++
+      Account ac1;
+      Account *ac2 = &ac1;
+      r = ac1.rate();
+      r = ac2->rate();
+      ```
+
+  * 成员函数可以直接使用静态成员, 不需要作用域运算符
+
+    * 例子: `Account`类中的`calculate`函数定义
+  
+* 说明
+
+  * 由于静态成员的存在独立于类的对象, 在某些非静态数据成员可能非法的场合中, 静态成员可以合法地使用
+    * 静态数据成员可以是不完全类型; 所以, 静态数据成员的类型可以是它所属类的类型
+    * 把静态数据成员作为默认实参
+
+## 定义静态成员
+
+### 静态成员函数
+
+* 静态成员函数既可以定义在类内部, 也可以定义在类外部;
+
+* 静态成员函数定义在类外部时需要通过`::`指明它所需的类
+
+* 定义在类外部时, 不能重复`static`关键字; `static`只出现在类内部
+
+* 例子
+
+  ```c++
+  void Account::rate(double newRate)
+  {
+      interestRate = newRate;
+  }
+  ```
+
+### 静态数据成员
+
+* 静态数据成员必须在类外部定义和初始化
+
+* 静态数据成员必须定义在任何函数之外; 因此一旦它被定义, 将一直存在于程序的整个生命周期中
+
+* 与其他对象一样, 一个静态数据成员只能定义一次
+
+* 静态数据成员需要通过`::`指明它所需的类
+
+* 例子
+
+  ```c++
+  double Account::interestRate = initRate();
+  ```
+
+特定类型的静态成员可以有类内初始符
+
+* `const`整型的静态成员可以有类内初始符
+* 字面值类型`constexpr`的静态成员必须要有类内初始符, 且初始符必须是常量表达式
+
+* 说明
+
+  * 如果某个静态成员仅用于编译器可以替换它的情况, 则一个被提供类内初始符的静态成员可以不在类外部定义; 否则需要在类外部定义.
+    * 编译器可以替换它的情况: 作为数组的维度
+    * 编译器不可以替换它的情况: 作为函数的实参
+  * 常量静态数据成员最好在类的外部定义, 即使在类内部被初始化(即提供了类内初始符)
+
+* 例子
+
+  ```c++
+  class Account {
+  /* the code as before*/
+  private:
+      static constexpr int period = 30;
+      double daily_tbl[period];
+  };
+  ```
+
+  ```c++
+  class Example {
+  public:
+      static const int ci = 10;
+      static const double cd = 3.14; 			 //error
+      static constexpr double ced = 3.14; 	 //ok
+      static constexpr const double &ref = ced;
+  };
+  ```
+  
+  
 

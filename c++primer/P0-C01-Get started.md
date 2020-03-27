@@ -8,7 +8,7 @@
 * 简要地说明怎么编译和执行一个程序
 
 ## 1.1 写一个简单的C++程序
-每个C++程序包含一个或多个函数（**function**），其中的某个函数必定命名为**main**。操作系统通过调用*main* 函数来运行一个C++程序。
+每个C++程序包含一个或多个函数（**function**），其中的某个函数必定命名为`main`。操作系统通过调用`main` 函数来运行一个C++程序。
 
 ---
 函数由四个部分组成
@@ -27,22 +27,29 @@ int main( )     // int， 返回类型； main， 函数名； 括号里是空�
 > 在C++中，绝大多数语句以分号为结束
 
 ---
-特殊的*main* 函数
-* 在大多数系统中，*main* 函数返回的值用作状态指示器
+特殊的`main` 函数
+* 在大多数系统中，`main` 函数返回的值用作状态指示器
     * 返回值为0时，表示成功
     * 非零返回值在不同的系统中有不同的意思；通常，非零返回值表示某种错误出现了
     
 ## 1.2 关于Input/Output
-#include <iostream> // #include，一种预处理器的指令; iostream，一个头文件
-std::cout, 在iostream中定义的ostream类的一种对象； 
-std::cin, std::err, std::log, 在iostream中定义的istream类的一种对象；
+`#include <iostream> `
+
+* `#include`，一种预处理器的指令
+* `iostream`，一个头文件
+
+`std::cout`, 是在`iostream`中定义的`ostream`类的对象； 
+`std::cin`, `std::err`, `std::log`, 都是在`iostream`中定义的`istream`类的对象；
+
 ## 1.3 关于注释
 单行注释 //
 多行注释 /* \*/
+
 ## 1.4 关于控制流
-while语句
-for语句
-if语句，if-else语句
+`while`语句
+`for`语句
+`if`语句，`if-else`语句
+
 ## 1.5 关于类
 data structure 数据结构
  类**class**, 用来定义一种类型, 和该类型相关的东西, 如方法, 操作符等；该类型称为类类型（**class type**）
