@@ -2,10 +2,10 @@
 
 IO类
 
-* 标准IO
+* 标准IO: `iostream`
 
-* 文件IO
-* `string`流
+* 文件IO: `fstream`
+* `string`流; `stringstream`
 
 [toc]
 
@@ -178,9 +178,9 @@ cin.tie(old_tie);					//cin不再关联cerr, 关联到cout
 
 头文件`fstream`定义的三个类型:
 
-* `ifstream`: 从一个给定文件读取数据
-* `ofstream`: 向一个给定文件写入数据
-* `fstream`: 读写给定文件
+* `ifstream`: 从一个给定文件读取数据, 继承`istream`
+* `ofstream`: 向一个给定文件写入数据, 继承`ostream`
+* `fstream`: 读写给定文件, 继承`iostream`
 
 这些类型继承了头文件`iostream`中的类型的操作, 还有定义一些操作来管理与流关联的文件
 
@@ -219,9 +219,95 @@ cin.tie(old_tie);					//cin不再关联cerr, 关联到cout
 
 * 作用: 该函数完成一些所需的系统相关的操作, 来定位给定的文件, 并视情况以读或写模式打开文件
 
-在要求使用父类对象的地方, 可以使用子类对象; 所以, 如果有一个函数接受一个`ostream&`参数, 在调用该函数时可以传递一个`ofstream`实参; 类似的, `istream&`和`ifstream`也是这样的
+* 调用可能会失败
 
-### 文件模式*
+  * 如果调用`open`失败, `failbit`被置位, 之后不能使用该文件流.
+  * 建议检查`open`的调用是否成功
+
+* 例子:
+
+  ```c++
+  ifstream in(ifile);
+  ofstream out;
+  out.open(ifile + ".copy");
+  if (out) {		//检查out是否成功打开文件
+    /*使用out的代码*/
+  }
+  ```
+
+`close`成员函数: 
+
+* 作用: 关闭文件流关联的文件
+
+关于使用文件流的说明
+
+* 一旦一个文件流已经打开, 它就与对应文件保持关联; 对一个已经打开且没有关闭的文件流调用`open`会失败
+  * 想要把一个已经打开的文件流关联到另一个文件, 必须首先关闭已经打开的文件; 一旦文件关闭成功, 我们就可以打开新的文件
+
+  * 例子
+
+    ```c++
+    in.close();
+    in.open(ifile + "2");
+    ```
+
+* 在要求使用父类对象的地方, 可以使用子类对象; 子类对象继承父类的操作
+  * 如果有一个函数接受一个`ostream&`参数, 在调用该函数时可以传递一个`ofstream`实参; 类似的, `istream&`和`ifstream`也是如此
+  * `ofstream`对象支持使用`<<`运算符写入数据; `ifstream`支持使用`>>`运算符读取数据
+
+* 文件流对象被销毁时, 自动调用`close`
+
+### 2.2文件模式*
+
+每个文件流都有相应的文件模式(**file mode**), 用来指出如何使用文件
+
+| 文件模式 | 含义                         |
+| -------- | ---------------------------- |
+| `in`     | 为了输出而打开文件           |
+| `out`    | 为了输出而打开文件           |
+| `app`    | 每次写入前定位到文件末尾     |
+| `ate`    | 打开文件后立即定位到文件末尾 |
+| `trunc`  | 截断文件                     |
+| `binary` | 以二进制模式执行io操作       |
+
+每次打开文件时都会显式或隐式地设置文件模式, 可以指定零个或多个模式; 需要注意如下规则
+
+* `out`: 只能被`ofstream`和`fstream`对象指定
+* `in`: 只能被`ifstream`和`fstream`对象指定
+* `trunc`: 当在`out`被指定时才能指定`trunc`
+* `app`: 如果没有显式指定`trunc`就能指定`app`; 只要指定了`app`, 文件总是以`out`模式打开, 即使没有显式地指定`out`模式
+* 默认情况下, 即使没有指定`trunc`, 以`out`模式打开的文件也会被截断.想要保留文件的内容, 要么指定`app`, 要么指定`in`.
+* `ate`, `binary`: 可用于任何类型的文件流对象, 且可以与其他任何文件模式组合使用
+
+文件流类型的默认文件模式
+
+* `ifstream`: `in`
+* `ofstream`: `out`
+* `fstream`: `in|out`
+
+例子
+
+```c++
+ofstream out;
+out.open("scratchpad", ofstream::out | ofstream::app);//mode is out and app
+out.close();
+out.open("precious");//mode implicitly out and trunc
+out.close();
+```
 
 # 3.`string`流
 
+`sstream`头文件定义三种类型来支持内存IO, 可以在`string`对象上读写数据
+
+* `istringstream`: 从`string`读取数据, 继承`istream`
+* `ostringstream`: 向`string`写入数据, 继承`ostream`
+* `stringstream`: 读写`string`, 继承`iostream`
+
+`stringstream`特有的操作
+
+| 操作               | 描述                                                         |
+| ------------------ | ------------------------------------------------------------ |
+| `sstream strm;`    | `sstream`表示头文件`sstream`定义的类型之一; 创建未绑定的`stringstream` |
+| `sstream strm(s);` | 创建一个`stringstream`, 存放`string s`的副本; `explicit`构造函数 |
+| `strm.str()`       | 返回`strm`所保存的`string`的拷贝                             |
+| `strm.str(s)`      | 把`string s`拷贝到`strm`中; 返回`void`                       |

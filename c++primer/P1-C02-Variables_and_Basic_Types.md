@@ -40,7 +40,7 @@
 * `long double`类型一般用于有特殊浮点需求的硬件，它的精度也因具体实现而变化。
 ### 1.1.3尺寸
 C++标准规定了尺寸的最小值
-![算术类型](C:\Users\c\Documents\my_markdown\c++primer\assets\算术类型.png)
+![算术类型](.\assets\算术类型.png)
 
 ### 1.1.4有符号类型和无符号类型
 #### 整型
@@ -108,7 +108,7 @@ C++标准规定了尺寸的最小值
     * 空格: `\40`
     * 字符`M`: `\x4d`
 ### 1.3.4指定字面值的类型
-![指定字面值类型](C:\Users\c\Documents\my_markdown\c++primer\assets\指定字面值类型.png)例子:
+![指定字面值类型](.\assets\指定字面值类型.png)例子:
 
 ```C++
 L'a'         // 宽字符型字面值, 类型是wchar_t
@@ -200,9 +200,9 @@ int c(ld), d = ld;           // 无报错, 将执行类型转换, 并丢失部�
         * 如`a__b`, `_Ab`
 * C++保留的名字, 不能用于标识符
     * 关键字Keywords
-        * ![keywords](C:\Users\c\Documents\my_markdown\c++primer\assets\keywords.png)    
+        * ![keywords](.\assets\keywords.png)    
     * 操作符替代名
-        * ![alternative_operator_names](C:\Users\c\Documents\my_markdown\c++primer\assets\alternative_operator_names.png)
+        * ![alternative_operator_names](.\assets\alternative_operator_names.png)
 * 标准库保留的名字, 建议不要用于标识符, 如`cin`, `cout`等
 ### 2.4.1变量的命名习惯
 提高程序可读性的习惯
