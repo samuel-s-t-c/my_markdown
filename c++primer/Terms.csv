@@ -1,0 +1,86 @@
+﻿abstract data type,抽象数据类型,Data structure that encapsulates its implementation.
+adaptor,适配器,"Library type, function, or iterator that, given  a type, function, or iterator, makes it act like another."
+address,地址,Number by which a byte in memory can be found.
+alias declaration,别名声明,Defines a synonym for another type: using `name = type` declares `name` as a synonym for the type `type`
+arguments,实参,Values  supplied in a function call that are used to initialize the function's parameters
+array,数值,Date structure that holds a collection of unnamed objects that are accessed by an index.
+auto,auto,Type specifier that deduces the type of a variable from its initializer.
+automatic object,自动对象,Objects that exist only during the execution of a function. They are created when control passed throught their definition and are destroyed at the end of the block in which they are defined.
+base type ,基本类型,"Type specifier, possibly qualified by `const`, `constexpre` and `typedef`, that precedes the declarators in a declaration. The base type provides the common type on which the declarators in a declaration can build."
+bind,绑定,Associating a name with a given entity so that uses of the name are uses of the underlying entity. 
+block,块,Sequence of zero or more statements enclosed in curly braces.
+block scope,块作用域,The scope that is inside a block.
+cast,强制类型转换,An explicit conversion
+class,类,C++ mechanism for defining our own abstract data types.
+class declaration,类声明,The keyword `class` (or `struct`) followed by the class name followed by a semicolon.
+class member,类成员,Part of a class.
+class scope,类作用域,The scope that is inside a class.
+class template,类模板,"A blueprint from which specific class types can be created. To use a class template, we must specify additional information."
+compiler extension,编译器扩展,Feature tha is added to the language by a particualr compiler.
+compound type,复合类型,A type that is defined in terms of another type.
+const,const,Type qualifier used to define objects tha may not be changed. `const` object must be initialized.
+const pointer,常量指针,Pointer that is `const`.
+const reference,常量引用,Colloquial synonym for reference to `const`.
+constant expression,常量表达式,Expression that can be evaluated at compile time.
+container ,容器,A type whose obejcts hold a collection of objects of a given type.
+copy initialization,拷贝初始化,Form of initialization tha uses an `=`. The newly created object is a copy of the given initalizer.
+data member,数据成员,Data elements that constitute an object.
+declarator,声明符,The part of a declaration that includes the name being defined and an optional type modifier.
+decltype,decltype,Type specifier that deduces the type of a variable or an expression.
+default initialization,默认初始化,How objects are intialized when no explicit initializer is given. How class type bojects are initialized is controlled by the class. Objects of built-in type defined at global scope are initialized to 0; those defined at local scope are uninitialized and have undefined values.
+definition,定义,Allocates storage for a variable of a specified type and optionally initializes the variable. Names may not be used until they are defined or declared.
+direct initialzation,直接初始化,Form of initialization that dose not include an `=`.
+encapsulation,封装,Separation of implementation from interface; encapsulation hides the implementation details of a type.
+end-of-file,文件结束符,System-specific marker that indicates that there is no more input in a file.
+expression,表达式,The samllest unit of computaion. An expression consists of one or more operands and usually one or more operators. Expressions are evaluated to produce a result.
+flow of control,控制流,Execution path through a program
+function,函数,Named unit of computation.
+function matching,函数匹配,Compiler process by which a call to an overloaded function is resolved. Arguments used in the call are compared to the parameter list of each overloaded function
+function prototype,函数原型,Function declaration
+global scope,全局作用域,The scope that is outside all other scopes.
+header guard,头文件保护符,Preprocessor variable used to prevent  a header from being include more than once in a single file.
+identifier,标识符,Sequence of characters that make up a name.
+implementation,实现,The (usually `private`) members of a class that define the data and any operations that are not intended for use by code that uses the type
+in scope,在作用域内,Name that is visible from the current scope.
+in-class initializer,类内初始符,Initializer provided as part of the declatation of a class data member. In-class initializers must follow an `=` symbol or be enclosed inside curly braces.
+index,索引,Value used in the subscript operator to denote the element to retrieve from a object.
+initialize,初始化,Give an object a value at the same time that it is created.
+initializer,初始符,
+instantiation,实例化,Compiler process that generates a specific template class or function.
+interface,接口,The (public) operations supported by a type.
+iterator,迭代器,A type used to access and navigate among the elements of a container
+link,链接,Compilation step in which multiple object files are put together to form a executable program.
+literal,字面值,"A value such as a number, a character, or a string of characters. The value cannot be changed. Literal characters are enclosed in single quotes, literal strings in double quotes."
+local scope,局部作用域,Colloquial synonym for block scope.
+low-level const,底层const,A `const` that is not top-level.
+manipulator,操纵符,"Object that when read or written ""manipulates"" the stream itself."
+member,成员,Part of a class.
+name lookup,名字查找,Process by which the use of a name is matched to its declaration
+namespace,命名空间,Mechanism for putting names defined by a library into a single place.
+namespace scope,命名空间作用域,The scope that is inside a namespace.
+object,对象,A region of memory that has a type. A variable is an object that has a name.
+object code,对象代码,Format into which the compiler transforms our source code
+object file,对象文件,File holding object code generated by the compiler from a given source file.
+order of evaluation,求值顺序,"Order, if any, in which the operands to an operator are evaluated."
+overload resolution,重载确定,Function matching
+overloaded operator,重载运算符,Version of an operator that is defined for use with a class type
+parameter,形参,Local variables declared inside the function parameter list. Parameters are initialized by the arguments provided in each function call.
+parameter list,形参列表,Part of the definition of a function. Possibly empty list that specifies what arguments can be used to call the function.
+preprocessor variable,预处理器变量,Variable manoaged by the preprocessor. The preprocessor replaces each preprocessor variable by its value before our program is compiled.
+recursive funtionc,递归函数,Function that calls itself directly of indirectly.
+scope,作用域,"The portion of a program in which names have meaning. C++ has several levels of scope: global, class, namespace, block."
+standard error,标准错误,"Output stream used for error reporting. Ordinarily, the standard ouput and the standard error are tied to the window in which the program is executed."
+standard input,标准输入,Input stream usually associated with the window in which the program executes.
+standard output,标准输出,Ouput stream usually associated with the window in which the program executes.
+statement,语句,"A part of a program that specifies an action to take place when the program is executed. An expression followed by a semicolon is a statement; other kinds of statements include blocks and `if`, `for`, and `while` statements, all of which contain other statements within themselves."
+temporary,临时值,Unnamed object created by the compiler while evaluation an expression. A temporary exists until the end of the largest expression that encloses the expression for which it was created.
+top-level const,顶层const,The `const` that specifies that an object may not be changed.
+type modifier,类型修饰符,例子: `*`和`&`
+type qualifier,类型限定符,例子: `const`
+type specifier,类型说明符,The name of a type.
+typedef,typedef,"When `typedef` appears in the base type of a declaration, the names defined in the declaration are type names."
+value initialization,值初始化,Initialization in which built-in types are initialized to zero and class types are initialized by the class's default constructor. Object of a class type can be value initialized only if the class has a default construcotr.
+variable,变量,A named object
+void type,void类型,Special-purpose type that has no operationss and no value. It is not possible to define a variable of type `void`.
+void*,void*,Pointer type that can point to any nonconst type. Such pointer s may nore be dereferenced.
+word,字,The natural unit of integer computation on a given machine. Usually a word is large enough to hold an address.
