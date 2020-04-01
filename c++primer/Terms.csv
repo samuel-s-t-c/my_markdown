@@ -10,6 +10,7 @@ base type ,基本类型,"Type specifier, possibly qualified by `const`, `constex
 bind,绑定,Associating a name with a given entity so that uses of the name are uses of the underlying entity. 
 block,块,Sequence of zero or more statements enclosed in curly braces.
 block scope,块作用域,The scope that is inside a block.
+callable object,可调用对象,Object that can appear as the left-hand operand of the call operator.
 cast,强制类型转换,An explicit conversion
 class,类,C++ mechanism for defining our own abstract data types.
 class declaration,类声明,The keyword `class` (or `struct`) followed by the class name followed by a semicolon.
@@ -37,6 +38,7 @@ flow of control,控制流,Execution path through a program
 function,函数,Named unit of computation.
 function matching,函数匹配,Compiler process by which a call to an overloaded function is resolved. Arguments used in the call are compared to the parameter list of each overloaded function
 function prototype,函数原型,Function declaration
+generic algorithms,泛型算法,Type-independent algorithms
 global scope,全局作用域,The scope that is outside all other scopes.
 header guard,头文件保护符,Preprocessor variable used to prevent  a header from being include more than once in a single file.
 identifier,标识符,Sequence of characters that make up a name.
@@ -66,6 +68,7 @@ overload resolution,重载确定,Function matching
 overloaded operator,重载运算符,Version of an operator that is defined for use with a class type
 parameter,形参,Local variables declared inside the function parameter list. Parameters are initialized by the arguments provided in each function call.
 parameter list,形参列表,Part of the definition of a function. Possibly empty list that specifies what arguments can be used to call the function.
+predicate,谓词,Function that returns a type that can be converted to `bool`
 preprocessor variable,预处理器变量,Variable manoaged by the preprocessor. The preprocessor replaces each preprocessor variable by its value before our program is compiled.
 recursive funtionc,递归函数,Function that calls itself directly of indirectly.
 scope,作用域,"The portion of a program in which names have meaning. C++ has several levels of scope: global, class, namespace, block."
