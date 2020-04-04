@@ -1,8 +1,11 @@
 # 总结
 
-动态分配
+动态内存
 
-智能指针
+* `new`和`delete`运算符
+
+* 智能指针: `shared_ptr`, `unique_ptr`, `weak_ptr`
+* `allocator`类
 
 [toc]
 
@@ -466,5 +469,5 @@ delete [] p;
 
 # 3.例子: 文本查询程序*(p484)
 
-### 
+
 
