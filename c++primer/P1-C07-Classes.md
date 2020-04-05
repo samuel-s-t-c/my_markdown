@@ -121,6 +121,8 @@ std::istream &read(std::istream&, Sales_data&);
 
 C++允许把`const`放在成员函数的参数列表之后, 以此声明`this`是一个指向常量的指针; 此时的成员函数被称作常量成员函数(**const member function**)
 
+* `const`必须同时出现在函数的声明和定义中
+
 * 例子: `Sales_data`类内部中, `std::string isbn() const {return bookNo;}`
 
 常量对象, 以及常量对象的指针或引用都只能调用常量成员函数

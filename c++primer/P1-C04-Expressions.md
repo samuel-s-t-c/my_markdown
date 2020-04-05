@@ -501,90 +501,91 @@
 
 ## 运算符的含义, 优先级和结合律
 
-| 结合律 |      运算符      | 功能                       | 结果 | 用法                    |
-| ------ | :--------------: | :------------------------- | :--: | ----------------------- |
-| L      |       `::`       | 全局作用域                 |      | `::name`                |
-| L      |       `::`       | 类作用域                   |      | `class::name`           |
-| L      |       `::`       | 命名空间作用域             |      | `namespace::name`       |
-|        |                  |                            |      |                         |
-| L      |       `.`        | 成员选择                   |  L   | `obejct.member`         |
-| L      |       `->`       | 成员选择                   |  L   | `pointer->member`       |
-| L      |       `[]`       | 下标                       |      | `expr[expr]`            |
-| L      |       `()`       | 函数调用                   | L/R  | `name(expr_list)`       |
-| L      |       `()`       | 类型转换                   |  ?   | `type(expr_list)`       |
-|        |                  |                            |      |                         |
-| R      |       `++`       | 后置递增运算               |  R   | `lvalue++`              |
-| R      |       `--`       | 后置递减运算               |  R   | `lvalue--`              |
-| R      |     `typeid`     | 类型ID                     |      | `typeid(type)`          |
-| R      |     `typeid`     | 运行时类型ID               |      | `typeid(expr)`          |
-| R      |  explicit cast   | 类型转换                   |  ?   | `cast_name<type>(expr)` |
-|        |                  |                            |      |                         |
-| R      |       `++`       | 前置递增运算               |  L   | `++lvalue`              |
-| R      |       `--`       | 前置递减运算               |  L   | `--lvalue`              |
-| R      |       `~`        | 位求反                     |  ?   | `~expr`                 |
-| R      |       `!`        | 逻辑非                     |  R   | `!expr`                 |
-| R      |       `-`        | 一元负号                   |  R   | `-expr`                 |
-| R      |       `+`        | 一元正号                   |  R   | `+expr`                 |
-| R      |       `*`        | 解引用                     |      | `*expr`                 |
-| R      |       `&`        | 取地址                     |      | `&lavlue`               |
-| R      |       `()`       | 类型转换                   |  ?   | `(type)expr`            |
-| R      |     `sizeof`     | 对象的大小                 |  R   | `sizeof(expr)`          |
-| R      |     `sizeof`     | 类型的大小                 |  R   | `sizeof(type)`          |
-| R      |   `sizeof...`    | 参数包的大小               |      | `sizeof...(name)`       |
-| R      |      `new`       | allocate object/分配对象   |      | `new type`              |
-| R      |     `new[]`      | allocate array/分配数组    |      | `new type[size]`        |
-| R      |     `delete`     | deallocate object/释放对象 |      | `delete expr`           |
-| R      |    `delete[]`    | 释放数组                   |      | `delete[] expr`         |
-| R      |    `noexcept`    | 能否抛出异常               |      | `noexcept(expr)`        |
-|        |                  |                            |      |                         |
-| L      |      `->*`       | 指向成员选择的指针         |      | `ptr->*ptr_to_member`   |
-| L      |       `.*`       | 指向成员选择的指针         |      | `obj.*ptr_to_member`    |
-|        |                  |                            |      |                         |
-| L      |       `*`        | 乘法                       |  R   | `expr*expr`             |
-| L      |       `/`        | 除法                       |  R   | `expr/expr`             |
-| L      |       `%`        | 取模(取余)                 |  R   | `expr%expr`             |
-|        |                  |                            |      |                         |
-| L      |       `+`        | 加法                       |  R   | `expr+expr`             |
-| L      |       `-`        | 减法                       |  R   | `expr-expr`             |
-|        |                  |                            |      |                         |
-| L      |       `<<`       | 位左移                     |  ?   | `expr<<expr`            |
-| L      |       `>>`       | 位右移                     |  ?   | `expr>>expr`            |
-|        |                  |                            |      |                         |
-| L      |       `<`        | 小于                       |  R   | `expr<expr`             |
-| L      |       `<=`       | 小于或等于                 |  R   | `expr<=expr`            |
-| L      |       `>`        | 大于                       |  R   | `expr>expr`             |
-| L      |       `>=`       | 大于或等于                 |  R   | `expr>=expr`            |
-|        |                  |                            |      |                         |
-| L      |       `==`       | 相等性                     |  R   | `expr==expr`            |
-| L      |       `!=`       | 不等性                     |  R   | `expr!=expr`            |
-|        |                  |                            |      |                         |
-| L      |       `&`        | 位与                       |  ?   | `expr&expr`             |
-|        |                  |                            |      |                         |
-| L      |       `^`        | 位异或                     |  ?   | `expr^expr`             |
-|        |                  |                            |      |                         |
-| L      |       `|`        | 位或                       |  ?   | `expr|expr`             |
-|        |                  |                            |      |                         |
-| L      |       `&&`       | 逻辑与                     |  R   | `expr&&expr`            |
-|        |                  |                            |      |                         |
-| L      |       `||`       | 逻辑或                     |  R   | `expr||expr`            |
-|        |                  |                            |      |                         |
-| R      |       `?:`       | 条件                       | L/R  | `expr?expr:expr`        |
-|        |                  |                            |      |                         |
-| R      |       `=`        | 赋值                       |  L   | `lvalue=expr`           |
-| R      | `*=`, `\=`, `%=` | 复合赋值                   |  L   | `lvalue+=expr`等        |
-| R      |    `+=`, `-=`    | 同上                       |  L   |                         |
-| R      |  `<<=`, `>>=`,   | 同上                       |  L   |                         |
-| R      |  `&=`,`=`, `^=`  | 同上                       |  L   |                         |
-|        |                  |                            |      |                         |
-| R      |     `throw`      | 抛出异常                   |  ?   | `throw expr`            |
-|        |                  |                            |      |                         |
-| L      |       `,`        | 逗号                       | L/R  | `expr, expr`            |
+| 结合律 |      运算符      | 功能                       | 结果 | 用法| 重载 |
+| ------ | :--------------: | :------------------------- | :--: | ----------------------- | ----------------------- |
+| L      |       `::`       | 全局作用域                 |      | `::name`                |N|
+| L      |       `::`       | 类作用域                   |      | `class::name`           |N|
+| L      |       `::`       | 命名空间作用域             |      | `namespace::name`       |N|
+|        |                  |                            |      |                         ||
+| L      |       `.`        | 成员选择                   |  L   | `obejct.member`         |N|
+| L      |       `->`       | 成员选择                   |  L   | `pointer->member`       |Y|
+| L      |       `[]`       | 下标                       |      | `expr[expr]`            |Y|
+| L      |       `()`       | 函数调用                   | L/R  | `name(expr_list)`       |Y|
+| L      |       `()`       | 类型转换                   |  ?   | `type(expr_list)`       |?|
+|        |                  |                            |      |                         ||
+| R      |       `++`       | 后置递增运算               |  R   | `lvalue++`              |Y|
+| R      |       `--`       | 后置递减运算               |  R   | `lvalue--`              |Y|
+| R      |     `typeid`     | 类型ID                     |      | `typeid(type)`          |?|
+| R      |     `typeid`     | 运行时类型ID               |      | `typeid(expr)`          |?|
+| R      |  explicit cast   | 类型转换                   |  ?   | `cast_name<type>(expr)` |?|
+|        |                  |                            |      |                         ||
+| R      |       `++`       | 前置递增运算               |  L   | `++lvalue`              |Y|
+| R      |       `--`       | 前置递减运算               |  L   | `--lvalue`              |Y|
+| R      |       `~`        | 位求反                     |  ?   | `~expr`                 |Y|
+| R      |       `!`        | 逻辑非                     |  R   | `!expr`                 |Y|
+| R      |       `-`        | 一元负号                   |  R   | `-expr`                 |Y|
+| R      |       `+`        | 一元正号                   |  R   | `+expr`                 |Y|
+| R      |       `*`        | 解引用                     |      | `*expr`                 |Y|
+| R      |       `&`        | 取地址                     |      | `&lavlue`               |X|
+| R      |       `()`       | 类型转换                   |  ?   | `(type)expr`            |?|
+| R      |     `sizeof`     | 对象的大小                 |  R   | `sizeof(expr)`          |?|
+| R      |     `sizeof`     | 类型的大小                 |  R   | `sizeof(type)`          |?|
+| R      |   `sizeof...`    | 参数包的大小               |      | `sizeof...(name)`       |?|
+| R      |      `new`       | allocate object/分配对象   |      | `new type`              |Y|
+| R      |     `new[]`      | allocate array/分配数组    |      | `new type[size]`        |Y|
+| R      |     `delete`     | deallocate object/释放对象 |      | `delete expr`           |Y|
+| R      |    `delete[]`    | 释放数组                   |      | `delete[] expr`         |Y|
+| R      |    `noexcept`    | 能否抛出异常               |      | `noexcept(expr)`        |?|
+|        |                  |                            |      |                         ||
+| L      |      `->*`       | 指向成员选择的指针         |      | `ptr->*ptr_to_member`   |Y|
+| L      |       `.*`       | 指向成员选择的指针         |      | `obj.*ptr_to_member`    |N|
+|        |                  |                            |      |                         ||
+| L      |       `*`        | 乘法                       |  R   | `expr*expr`             |Y|
+| L      |       `/`        | 除法                       |  R   | `expr/expr`             |Y|
+| L      |       `%`        | 取模(取余)                 |  R   | `expr%expr`             |Y|
+|        |                  |                            |      |                         ||
+| L      |       `+`        | 加法                       |  R   | `expr+expr`             |Y|
+| L      |       `-`        | 减法                       |  R   | `expr-expr`             |Y|
+|        |                  |                            |      |                         ||
+| L      |       `<<`       | 位左移                     |  ?   | `expr<<expr`            |Y|
+| L      |       `>>`       | 位右移                     |  ?   | `expr>>expr`            |Y|
+|        |                  |                            |      |                         ||
+| L      |       `<`        | 小于                       |  R   | `expr<expr`             |Y|
+| L      |       `<=`       | 小于或等于                 |  R   | `expr<=expr`            |Y|
+| L      |       `>`        | 大于                       |  R   | `expr>expr`             |Y|
+| L      |       `>=`       | 大于或等于                 |  R   | `expr>=expr`            |Y|
+|        |                  |                            |      |                         ||
+| L      |       `==`       | 相等性                     |  R   | `expr==expr`            |Y|
+| L      |       `!=`       | 不等性                     |  R   | `expr!=expr`            |Y|
+|        |                  |                            |      |                         ||
+| L      |       `&`        | 位与                       |  ?   | `expr&expr`             |Y|
+|        |                  |                            |      |                         ||
+| L      |       `^`        | 位异或                     |  ?   | `expr^expr`             |Y|
+|        |                  |                            |      |                         ||
+| L      |       `|`        | 位或                       |  ?   | `expr|expr`             |Y|
+|        |                  |                            |      |                         ||
+| L      |       `&&`       | 逻辑与                     |  R   | `expr&&expr`            |X|
+|        |                  |                            |      |                         ||
+| L      |       `||`       | 逻辑或                     |  R   | `expr||expr`            |X|
+|        |                  |                            |      |                         ||
+| R      |       `?:`       | 条件                       | L/R  | `expr?expr:expr`        |N|
+|        |                  |                            |      |                         ||
+| R      |       `=`        | 赋值                       |  L   | `lvalue=expr`           |Y|
+| R      | `*=`, `\=`, `%=` | 复合赋值                   |  L   | `lvalue+=expr`等        |Y|
+| R      |    `+=`, `-=`    | 同上                       |  L   |                         |Y|
+| R      |  `<<=`, `>>=`,   | 同上                       |  L   |                         |Y|
+| R      |  `&=`,`=`, `^=`  | 同上                       |  L   |                         |Y|
+|        |                  |                            |      |                         ||
+| R      |     `throw`      | 抛出异常                   |  ?   | `throw expr`            |?|
+|        |                  |                            |      |                         ||
+| L      |       `,`        | 逗号                       | L/R  | `expr, expr`            |X|
 
 表格说明
 
 * 以优先级分组, 从高到低排序
 * 结合律以`L`和`R`表示左右结合律
 * 结果以`L`和`R`表示左值和右值, `L/R`表示视情况而定, `?`表示未知
+* 重载中的`Y`表示该运算符能够重载, `N`表示不能, `X`表示可以重载但不建议
 
 ## 求值顺序
 
