@@ -1,6 +1,11 @@
 # 总结
 
-泛型编程与模板
+模板
+
+* 类模板和函数模板
+* 显式模板实参
+* 模板特例化
+* 可变模板, 包扩展
 
 [toc]
 
@@ -679,7 +684,7 @@ void intermediary(Type &&arg)
     * 如果其中没有非模板函数, 而有多个函数模板, 且某一个模板比其他模板更特例化, 则选择此模板
     * 否则, 该调用有歧义的
 
-### 示例: 编写重载模板p695
+## 示例: 编写重载模板p695
 
 # 4.可变模板
 
@@ -690,20 +695,198 @@ void intermediary(Type &&arg)
 * 有两种参数包
   * 模板参数包(或模板形参包, **template parameter pack**), 表示零个或多个模板形参
   * 函数参数包(或函数形参包, **function parameter pack**), 表示零个或多个函数形参
-
 * 在模板形参列表中使用省略号`...`指出一个模板形参或函数形参表示一个包
 
   *  `class...`或`typename...`指出接下来的形参表示一个包含零个或多个类型的列表
-  * 类型名后跟`...`指出接下来的形参表示一个包含零个或多个给定类型的非类型形参的列表
+  * 类型后跟`...`指出接下来的形参表示一个包含零个或多个给定类型的非类型形参的列表
+* 在函数模板的函数形参列表中, 如果一个函数形参的类型是模板参数包, 则该函数形参是一个函数参数包;
+  * 编译器在推断模型形参的类型时, 也会推断参数包中形参的数目
 
-* 在函数模板的函数形参列表中, 如果一个函数形参的类型是模板参数包, 则该函数形参是一个函数参数包
+`sizeof...`运算符(C++11)
 
-  
+* 返回一个常量表达式, 表示参数包中形参的数目
+  * 用于模板参数包时, 表示模板形参的数目
+  * 用于函数参数包时, 表示函数形参的数目
 
 ## 4.1编写可变函数模板
 
+> 当我们不知道要处理的实参的数目和类型时, 可变参数函数是很有用的
+
+可变参数函数通常是递归的; 
+
+* 在每次递归中处理包中的一个实参
+* 为了终止递归, 还会定义一个非可变的函数版本
+
+```c++
+template <typename T>
+ostream &print(ostream &os, const T &t)
+{
+    return os << t;
+}
+
+template <typename T, typename... Args>
+ostream &print(ostream &os, const T &t, const Args&... rest)
+{
+    os << t << ", ";
+    return print(os, rest...);
+}
+```
+
+* `rest...`表示包扩展
+
+注意:
+
+* 非可变形参版本的声明放在可变形参版本前; 这样的话, 调用可变形参版本时, 非可变形参版本是可见的
+
 ## 4.2包扩展
 
-## 4.3转发形参包
+对于一个参数包, 除了能够获取其大小外, 还能扩展(**expand**)它.
 
-# 5.模板特例化
+包扩展
+
+* 扩展一个包, 是指将包分解为一个个元素, 然后在每个元素上使用模式
+  * 当扩展一个包时, 需要提供一个在每个元素上使用的模式(**pattern**)
+* 在模式右边放一个省略号, 表示扩展操作
+
+例子
+
+```c++
+template <typename T, typename... Args>
+ostream &print(ostream &os, const T &t, const Args&... rest)
+{
+    os << t << ", ";
+    return print(os, rest...);
+}
+```
+
+* 第一次扩展发生在函数形参列表中的`const Args&... rest`处, 为了`print`生成零个或多个函数形参
+  * `Args`是模板类型形参包; 扩展`Args`时, `Args`中的每个元素(即类型)被用于模式`const Args&`中
+  * 因此, `const Args&...`的扩展结果是一个逗号分隔的零个或多个类型的列表, 且每个类型都形如`const type&`
+* 第二次扩展发生在返回语句中的 `print(os, rest...)`处, 为`print`调用生成了实参列表
+  * `rest`是一个函数形参包, 表示零个或多个函数形参
+  * 扩展`rest..`的结果是一个逗号分隔的零个或多个实参的列表, 且每个实参都形如`arg`
+
+### 理解包扩展p703
+
+## 4.3转发形参包(C++11)
+
+C++11允许组合使用可变模板和`forward`, 实现将参数包转发给其他函数
+
+例子: 在`StrVec`中实现一个类似容器的`emplace_back`成员的函数
+
+```c++
+template <class... Args>
+inline
+void StrVec::emplace_back(Args&&... args)
+{
+    chk_n_alloc;
+    alloc.construct(first_free++, std::forward<Args>(args)...);
+}
+```
+
+* `std::forward<Args>(args)...`, 同时扩展了`Args`和`args`两个包
+
+可变参数函数通常将它们的形参转发给其他函数, 这种函数通常具有与上述函数一样的形式:
+
+# 5.模板特例
+
+模板特例(**template specialization**)是某个模板的一个分离的定义, 在该定义中一个或多个模板形参已被指定为特定的类型
+
+## 函数模板特例
+
+当我们特例化一个函数模板时, 必须为原模板中的每个模板形参提供一个实参
+
+* 为了表明这是一个函数模板特例, 应使用关键字`template`并后跟一个空尖括号`<>`; 空尖括号表示已经为原模板的所有模板形参提供实参
+
+定义一个函数模板特例时, 原模板的声明必须在作用域中, 而且函数形参的类型必须与原模板中对应的类型匹配
+
+如: 
+
+```c++
+template <typename T> int compare (const T&, const T&);
+template <> int compare (const char * const &, const char * const &)
+{
+    return strcmp(p1, p2);
+}
+```
+
+### 函数重载与模板特例
+
+当定义函数模板特例时, 我们其实是为原模板的一个特定实例提供定义; 也就是说, 一个特例本质上是原模板的实例, 而不是该函数名的一个重载版本
+
+因此, 模板特例不会影响函数匹配
+
+## 模板特例与声明
+
+建议: 模板及其特例应该声明在同一个头文件中; 所有同名模板的声明应该放在前面, 然后是这些模板的特例放在原模板的后面
+
+说明:
+
+* 在任何使用模板实例的代码之前, 特例的声明也应该在作用域中
+
+* 在打算使用模板特例的代码中, 如果当前作用域中只有原模板的声明, 没有特例的声明, 编译器将使用原模板生成实例
+
+## 类模板特例
+
+当特例化一个类模板时, 可以为原模板中的每个模板形参提供一个实参, 也可以只为部分的模板形参提供实参
+
+* 在类名后中的`<>`尖括号中指定实参, 实参与原始模板中的形参按位置对应
+* 如果为原模板中的每个模板形参提供一个实参, 则特例的模板形参列表为空
+
+* 在定义类模板的特例时, 可以在特例的外部或内部定义成员
+
+例子: 为`Sales_data`定义一个标准库`hash`的特例
+
+```c++
+namespace std {
+	template <>
+	struct hash<Sales_data>
+	{
+ 	   typedef size_t result_type;
+ 	   typedef Sales_data argument_type;
+	   size_t operator()(const Sales_data& s) const;
+	};
+	size_t
+	hash<Sales_data>::operator()(const Sales_data& s) const
+	{
+ 	   return hash<string>()(s.bookNo) ^
+	          hash<unsigned>()(s.units_sold) ^
+ 	          hash<double>()(s.revenue);
+	}	
+}
+
+template <class T> class std::hash;
+class Sales_data {
+    friend class std::hash<Sales_data>;
+    //other member as before
+};
+```
+
+### 类模板的局部特例化
+
+特例化类模板时, 可以只指定一部分模板形参, 或者形参的一部分特性
+
+* 在类名后的`<>`中指定实参, 实参与原始模板中的形参按位置对应
+* 在局部特例的模板形参列表中必须包含每个未完全确定类型的模板形参
+
+类模板局部特例(**class template partial specialization**), 本身也是一个模板; 因此用户在使用局部特例时, 必须为未被指定的模板形参提供实参
+
+例子: 标准库中的`remove_reference`类型
+
+```c++
+//原始的, 通用的版本
+template <class T> struct remove_reference {
+    typedef T type;
+};
+//用于左值和右值引用的局部特例
+template <class T> struct remove_reference<T&> {
+    typedef T type;
+};
+template <class T> struct remove_reference<T&&> {
+    typedef T type;
+};
+```
+
+### 特例化成员
+
+可以只特例化成员函数而不是特例化整个类模板
