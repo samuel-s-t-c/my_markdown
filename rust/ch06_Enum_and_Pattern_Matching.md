@@ -131,6 +131,150 @@ m.call();
 
 # 2. `match`控制流操作符
 
+`match`表达式
 
+* 形式
+
+  ```rust
+  match value {
+      pattern1 => expression1,
+      pattern2 => expression1,
+      ...
+  }
+  ```
+
+  * 按顺序将`value`与模式匹配, 当匹配成功, 则执行对应的表达式
+
+* 说明
+
+  * `match`表达式的结果是匹配分支中的表达式结果
+  * `value`的类型没有限制
+
+## 2.1与值绑定的模式
+
+`match`表达式中, 匹配分支中的模式可以与对应的值中的部分组成绑定
+
+* 具体是, 在模式中声明一个或多个名字, 与对应的部分组成绑定
+
+```rust
+enum UsState {
+    Alabama,
+    Alaska,
+    // --snip--
+}
+
+enum Coin {
+    Penny,
+    Nickel,
+    Dime,
+    Quarter(UsState),
+}
+
+fn value_in_cents(coin: Coin) -> u8 {
+    match coin {
+        Coin::Penny => 1,
+        Coin::Nickel => 5,
+        Coin::Dime => 10,
+        Coin::Quarter(state) => {
+            println!("State quarter from {:?}!", state);
+            25
+        },
+    }
+}
+```
+
+## 2.2`Option<T>`与`match`
+
+```rust
+fn plus_one(x: Option<i32>) -> Option<i32> {
+    match x {
+        None => None,
+        Some(i) => Some(i + 1),
+    }
+}
+
+let five = Some(5);
+let six = plus_one(five);
+let none = plus_one(None);
+```
+
+## 2.3匹配的分支要全面
+
+`match`中的分支必须覆盖所有可能的情况
+
+## 2.4`_`占位符
+
+`_`占位符, 与对应的值绑定, 表示不打算使用该值
+
+* 模式中声明的名字, 表示与值绑定, 在对应的表达式中使用该名字
+
+```rust
+let some_u8_value = 0u8;
+match some_u8_value {
+    1 => println!("one"),
+    3 => println!("three"),
+    5 => println!("five"),
+    7 => println!("seven"),
+    _ => (),
+}
+```
 
 # 3. `if let`的控制流
+
+`if let`接受一个模式和一个表达式, 两者用`=`分隔
+
+* 当模式与表达式匹配时, 执行后面的代码块; 否则, 跳过代码块, 或者执行`else`的代码块
+* 注意: 两个代码块的结果要兼容; 如果没有`else`代码块, 则要返回`()`
+
+* 形式
+
+  ```rust
+  if let pattern = expression {
+      //do something
+  }
+  //if let的另一种形式
+  if let pattern = expression {
+      //do something
+  } else {
+      //do something
+  }
+  ```
+
+例子: 
+
+以下两个代码段的效果是相同的
+
+```rust
+let some_u8_value = Some(0u8);
+if let Some(3) = some_u8_value {
+    println!("three");
+}
+```
+
+```rust
+let some_u8_value = Some(0u8);
+match some_u8_value {
+    Some(3) => println!("three"),
+    _ => (),
+}
+```
+
+以下两个代码段的效果是相同的
+
+```rust
+let mut count = 0;
+if let Coin::Quarter(state) = coin {
+    println!("State quarter from {:?}!", state);
+} else {
+    count += 1;
+}
+```
+
+```rust
+let mut count = 0;
+match coin {
+    Coin::Quarter(state) => println!("State quarter from {:?}!", state),
+    _ => count += 1,
+}
+```
+
