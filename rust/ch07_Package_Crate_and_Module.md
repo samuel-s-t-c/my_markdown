@@ -43,6 +43,7 @@ crate
 * Cargo按照规范在包的`src`目录中创建一个`main.rs`文件, 并作为与该包同名的binary crate的crate root
   * 例子中, 该binary crate与包同名, 名字都是`my-project`
   * 由于这是规范, `Cargo.toml`没有记录`src/main.rs`
+  * 如果命令为`cargo new my-project --lib`, 则创建一个`lib.rs`文件
 * 可以在包的`src`目录创建一个`lib.rs`文件, 那么该包有一个同名的library crate, 而且`lib.rs`是该library crate的crate root
   * 例子中, 该library crate的名字为`my-project`
 * Cargo在构建时将crate root文件传递给`rustc`编译器, 以构建对应的库或二进制文件
@@ -119,10 +120,10 @@ crate
 路径(**path**): 
 
 * 绝对路径(**absolute path**), 是指从根部模组开始的路径
-  * 使用一个crate的名字或者`crate`开始一个绝对路径
+  * 使用某个crate的名字或者`crate`开始一个绝对路径
     * 当前文件所表示的crate, 必须用`crate`来表示
 * 相对路径(**relative path**), 是指从当前模组开始的路径
-  * 使用`self`, `super`或者当前模组的名字开始一个相对路径
+  * 使用`self`, `super`或者当前模组中的某个名字开始一个相对路径
     * `self`表示所在的模组, `super`表示所在模组的父模组
 
 路径的表示: 
@@ -146,7 +147,7 @@ pub fn eat_at_restaurant() {
 ```
 
 * 注意: 路径上的对象有些是无法访问的, 因此编译会报错, 下小节将修复错误
-* 对于`eat_at_restaurant`而言, 它位于根部模组/crate root, 与`front_of_house`模组是兄弟关系的
+* 对于`eat_at_restaurant`而言, 它位于根部模组/crate root, 与`front_of_house`模组是兄弟关系
 * 绝对路径: `crate::front_of_house::hosting::add_to_waitlist()`
   * `crate`是指当前所在的crate, 也就是`restaurant`
 * 相对路径: `front_of_house::hosting::add_to_waitlist()`
@@ -265,6 +266,7 @@ pub fn eat_at_restaurant() {
 `use`关键字可以将一条路径引入到一个作用域中; 当引入路径后, 可以像局部对象那样使用该路径上的对象
 
 * 形式: `use PATH`
+  
   * `PATH`可以是绝对路径或相对路径
 * `use`引入路径时, 也要检查能否访问该路径
 

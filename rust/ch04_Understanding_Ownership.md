@@ -297,11 +297,11 @@ fn dangle() -> &String { // dangle returns a reference to a String
 
 ## 3.1字符串切片string slice
 
-`&str`类型
+`&str`/`str`类型
 
 * `&str`, 也就是字符串切片, 是一个引用, 指向一个`String`的某个部分
-
-* 形式: `&str[starting_index..ending_index]`
+* 创建字符串切片值的形式: `&Val[starting_index..ending_index]`
+  * `Val`的类型要与字符串切片类型兼容
   * `starting_index`是该切片中的第一位置, `ending_index`是该切片中的尾后位置
 * 在切片内部, 保存了起始位置和切片的长度
 * `..`范围语法
@@ -345,7 +345,7 @@ let s = "Hello, world!";
 
 ## 3.2其他切片
 
-数组切片, 类型为`&[elem_type]`
+数组切片, 类型为`&[elem_type]`/ `[elem_type]`
 
 ```rust
 let a = [1, 2, 3, 4, 5];

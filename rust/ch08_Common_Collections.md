@@ -324,6 +324,8 @@ for b in "नमस्ते".bytes() {
   scores.entry(String::from("Yellow")).or_insert(50);
   scores.entry(String::from("Blue")).or_insert(50);
   
+  ```
+
 println!("{:?}", scores);
   ```
 
@@ -336,3 +338,4 @@ println!("{:?}", scores);
 可以显式地指定其他的`hasher`
 
 * `hasher`是实现了`BuildHasher`特征的类型
+  ```
