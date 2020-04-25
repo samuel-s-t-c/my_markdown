@@ -128,10 +128,13 @@ deref coercion的几种情况
 `RefCell<T>`类型, 表示数据的唯一拥有者
 
 * 仅用于单线程情况
-
 * `RefCell<T>`在运行时检查借用规则, 具体是在运行时违反借用规则时程序panic
   * 不在编译时检查借用规则
 * 常用场景: 你确信代码遵守借用规则, 而编译器不能理解代码并保证代码是安全的
+
+* 方法
+  * `borrow`: 返回一个智能指针`Ref<T>`, 表示不可变的引用
+  * `borrow_mut`: 返回一个智能指针`RefMut<T>`, 表示可变的引用
 
 ## 5.2内部可变性: 对不可变值的可变借用
 
@@ -141,6 +144,93 @@ deref coercion的几种情况
 
 测试替身(*test double*), 是一个通用编程概念, 表示在测试过程中替代某个类型的类型
 
-* mock对象是特定类型的测试替身, 用于记录测试过程中发生了什么以便可以断言操作是正确的
+* mock对象是测试替身中的特定类型, 用于记录测试过程中发生了什么以便可以断言操作是正确的
+
+```rust
+pub trait Messenger {
+    fn send(&self, msg: &str);
+}
+
+pub struct LimitTracker<'a, T: Messenger> {
+    messenger: &'a T,
+    value: usize,
+    max: usize,
+}
+
+impl<'a, T> LimitTracker<'a, T>
+where
+    T: Messenger,
+{
+    pub fn new(messenger: &T, max: usize) -> LimitTracker<T> {
+        LimitTracker {
+            messenger,
+            value: 0,
+            max,
+        }
+    }
+
+    pub fn set_value(&mut self, value: usize) {
+        self.value = value;
+
+        let percentage_of_max = self.value as f64 / self.max as f64;
+
+        if percentage_of_max >= 1.0 {
+            self.messenger.send("Error: You are over your quota!");
+        } else if percentage_of_max >= 0.9 {
+            self.messenger
+                .send("Urgent warning: You've used up over 90% of your quota!");
+        } else if percentage_of_max >= 0.75 {
+            self.messenger
+                .send("Warning: You've used up over 75% of your quota!");
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::cell::RefCell;
+
+    struct MockMessenger {
+        sent_messages: RefCell<Vec<String>>,
+    }
+
+    impl MockMessenger {
+        fn new() -> MockMessenger {
+            MockMessenger {
+                sent_messages: RefCell::new(vec![]),
+            }
+        }
+    }
+
+    impl Messenger for MockMessenger {
+        fn send(&self, message: &str) {
+            self.sent_messages.borrow_mut().push(String::from(message));
+        }
+    }
+
+    #[test]
+    fn it_sends_an_over_75_percent_warning_message() {
+        // --snip--
+        let mock_messenger = MockMessenger::new();
+        let mut limit_tracker = LimitTracker::new(&mock_messenger, 100);
+
+        limit_tracker.set_value(80);
+
+        assert_eq!(mock_messenger.sent_messages.borrow().len(), 1);
+    }
+}
+
+fn main() {}
+
+```
 
 # 6.引用循环
+
+`Weak<T>`
+
+* `upgrade`方法: 返回一个关联的`Rc<T>`
+
+`Rc<T>`
+
+* `downgrade`方法: 返回一个关联的`Weak<T>`
