@@ -50,7 +50,8 @@
 * `JoinHandle`类型的值是一个有拥有权的值
 
 * 方法
-  * `join`: 阻止当前线程的运行, 直到线程柄所表示的线程终止;
+  * `pub fn join(self) -> Result<T>`
+    * 阻止当前线程的运行, 直到线程柄所表示的线程终止;
     * 返回一个`Result`; 当子线程panic时, `Result`是一个`Err`, 包含一个传递给`panic`的参数
 
 `sleep`函数, 路径为`std::thread::sleep`
@@ -119,9 +120,12 @@ fn main() {
   * `mpsc`是*multiple producer, single consumer*的缩写
   * 声明: `pub fn channel<T>() -> (Sender<T>, Receiver<T>)`
     * 返回一个元组, 第一个元素是发送端, 第二个元素是接受端
-* `Sender`的`send`方法: 
-  * 声明: `pub fn send(&self, t: T) -> Result<(), SendError<T>>`
-    * 向通道发送一个值; 如果通道的接受端被关闭, 则返回一个错误
+* `Sender`
+  * 特征
+    * `Clone`
+  * 方法: 
+    *  `pub fn send(&self, t: T) -> Result<(), SendError<T>>`
+      * 向通道发送一个值; 如果通道的接受端被关闭, 则返回一个错误
 * `Receiver`
   * 方法
     * `pub fn recv(&self) -> Result<T, RecvError>`:
@@ -129,6 +133,94 @@ fn main() {
     * `pub fn try_recv(&self) -> Result<T, TryRecvError>`
       * 不阻止执行; 立即返回一个`Result`, `Ok`表示有可用的消息, `Err`表示没有任何消息
 
-# 3.共享状态
+# 3.共享状态并发
 
-# 4.`Sync`和`Send`
+互斥体(*Mutual exclusion, Mutex*), 是在共享内存中一种常见的并发基础机制
+
+## 3.1互斥体
+
+互斥体: 在任何时刻只允许一个线程访问其中的某些数据
+
+* 如果某个线程想要访问互斥体中的数据, 它必须向互斥体请求一个锁(*lock*), 以表明希望访问数据
+  * 锁(*lock*)是互斥体中的一个数据结构, 用于记录当前占有数据的线程
+* 如果某个线程处理完互斥体中的数据后, 它必须为数据解锁,  这样其他线程才能获得这个锁
+
+## 3.2`Mutex<T>`
+
+Rust提供一个互斥体的实现
+
+ `Mutex<T>`, 互斥体
+
+* 路径: `std::sync::Mutex`
+
+* 方法:
+  * `pub fn new(t: T) -> Mutex<T>`
+    * 接受一个值, 返回一个`Mutex`
+  * `type LockResult<Guard> = Result<Guard, PoisonError<Guard>>`
+  * `pub fn lock(&self) -> LockResult<MutexGuard<T>>`
+    * 请求获得一个锁, 这会阻止当前线程的执行, 直至获得返回值
+    * 如果持有锁的线程panic, 返回`Err`
+
+`MutexGuard<T>`, 指向互斥体中的数据的智能指针
+
+* 路径: `std::sync::MutexGuard`
+* 只有当前线程持有锁时, 才能通过`MutexGuard`访问数据
+* 当`MutexGuard`离开作用域时, 自动解锁
+
+## 3.3多线程共享一个`Mutex<T>`
+
+注意: `Rc<T>`不能在线程间安全地共享某个值
+
+`Arc<T>`类型, 原子性引用
+
+* `a`是`atomic`的缩写, `rc`是`reference count`的缩写
+* 路径: `std::sync::Arc`
+* 与`Rc<T>`类似, 不过能安全地在并发时使用
+* 拥有与`Rc<T>`相同的API
+
+## 3.4`RefCell`/`Rc` 与 `Mutex`/`Arc` 的相似之处
+
+像`Cell`系列类型那样, `Mutex`是内部可变的;  与`Rc`类似, `Arc`只提供不可变引用
+
+* 所以, 可以使用`Mutex`来改变`Arc`中的内容
+
+`Rc`可能出现引用循环的风险; 而`Mutex`也有造成死锁(*deadlock*)的风险
+
+* 当一个操作需要锁住两个资源, 而两个线程各自持有对方想要的锁, 这会导致它们永远相互等待
+
+# 4.`Sync`和`Send`特征
+
+Rust语言自身只提供很少的并发特性
+
+* 前面所提到的并发特性, 都是标准库所提供的.
+
+* 你可以编写自己的并发特性, 或使用别人编写的特性
+
+Rust语言提供的并发特性中的特征: `std::marker`中的`Sync`和`Send`特征
+
+## 4.1`Send`: 允许线程间的拥有权转移
+
+`Send`标记特征
+
+* 程序员想要表明某个类型的拥有权可以在线程间移动, 那么为该类型实现`Send`特征, 
+* 几乎所有Rust类型都有`Send`特征, 除了几个例外, 如`Rc<T>`
+
+  * 完全由`Send`类型组成的类型, 会自动标记为`Send`
+  * 除了原始指针(*raw pointer*)外, 所有原始类型都是`Send`的
+
+## 4.2`Sync`: 允许多线程访问
+
+`Sync`标记特征
+
+* 程序员想要表明某个类型可以安全地被多个线程的代码引用, 那么为其实现`Sync`特征
+  * 也就是说, 如果类型`T`的引用`&T`是`Send`, 那么类型`T`是`Sync`
+* 原始类型都是`Sync`
+* 完全由`Sync`类型组成的类型, 自动被标记为`Sync`
+
+## 4.3手动实现`Send`和`Sync`是不安全的
+
+* 作为标记特征(*maker trait*), `Send`和`Sync`没有需要实现的方法, 只是用来标记并发相关的不变量
+
+* 通常并不需要手动实现`Send`和`Sync`特征, 因为由`Send`和`Sync`类型组成的类型自就是`Send`和 `Sync`的
+
+* 如果手动实现`Send`和`Sync`特征, 那么一定会涉及到`unsafe`代码

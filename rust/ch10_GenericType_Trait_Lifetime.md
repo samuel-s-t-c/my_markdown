@@ -194,9 +194,9 @@ pub fn notify(item: impl Summary) {
 }
 ```
 
-## 2.4特征绑定
+## 2.4特征边界Trait bound
 
-`impl TRAIT`句法是特征绑定的语法糖
+`impl TRAIT`句法是特征边界的语法糖
 
 ```rust
 pub fn notify(item: impl Summary) {
@@ -208,13 +208,15 @@ pub fn notify<T: Summary>(item: T) {
 }
 ```
 
-特征绑定, 是指能将类型形参与特征绑定的机制
+特征边界
 
 * 形式: `<T: TRAIT>`
-  * 将`TRAIT`特征绑定到类型形参`T`上, 使得`T`的实参必须是实现`TRAIT`特征的类型
-* 使用`+`句法绑定多个特征的形式: `<T: TRAIT1 + TRAIT2>`
-  * `impl TRAIT`句法也适用: `impl TRAIT1 + TRAIT2`
-
+  
+  * 类型形参`T`有一个`TRAIT`特征边界, 使得`T`的实参必须是实现`TRAIT`特征的类型
+* 使用`+`句法指定多个特征边界的形式: `<T: TRAIT1 + TRAIT2>`
+  
+* `impl TRAIT`句法也适用: `impl TRAIT1 + TRAIT2`
+  
 * 使用`where`的形式: 
 
   * 在函数签名后跟`where`
@@ -252,9 +254,9 @@ fn returns_summarizable() -> impl Summary {
 }
 ```
 
-## 2.6使用特征绑定以有条件地实现方法
+## 2.6使用特征边界以有条件地实现方法
 
-对`impl`块使用特征绑定
+对`impl`块使用特征边界
 
 * 类型实参只有实现给定的特征, 才能够实现对应的`impl`块
 * 特别的: 只有实现给定特征的类型才能够实现其他特征, 这样的特征实现被称为*blanket implementation*
@@ -344,7 +346,7 @@ error[E0597]: `x` does not live long enough
 
 Rust编译器有一个借用检查器, 用于比较作用域以确定所有借用是否有效
 
-* 被引用的对象要比引用的寿命长
+* 被引用的item要比引用的寿命长
 
 例子
 

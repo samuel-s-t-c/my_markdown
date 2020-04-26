@@ -175,8 +175,9 @@ mod tests {
 
 * 默认情况下, 测试运行器不会运行有`ignore`属性的测试函数
 * 如果只希望运行被忽略的测试, 可以给测试运行器传递 `--ignored`标记
-  * 如`cargo test -- --ignored`
-
+  
+* 如`cargo test -- --ignored`
+  
 * 例子
 
   ```rust
@@ -225,7 +226,7 @@ Rust社区从两个主要分类来考虑测试
 `cfg`属性
 
 * `cfg`是*configuration* 的缩写
-* `cfg`属性使得其后的对象只应该被包含进给定的配置选项中
+* `cfg`属性使得其后的item只应该被包含进给定的配置选项中
   * `cfg(test)`中的`test`就是一个配置选项
 
 ### 测试私有函数
