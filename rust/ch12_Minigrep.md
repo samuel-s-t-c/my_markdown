@@ -287,7 +287,7 @@ fn run(config: Config) -> Result<(), Box<dyn Error>> {
 }
 ```
 
-* 特征对象`Box<dyn Error>`: 表示一个函数, 返回类型是任意有`Error`特征的类型
+* 特征对象`Box<dyn Error>`: 表示一个有`Error`特征的类型
   * `dyn`, 是*dynamic*的缩写
   * 这使得我们能够在不同的错误场景下返回不同类型的错误
 * 注意`fs::read_to_string`方法后面的`?`运算符

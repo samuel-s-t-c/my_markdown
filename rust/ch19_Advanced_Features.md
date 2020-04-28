@@ -152,8 +152,9 @@ Rust有一个`extern`关键字, 有助于创建和使用外部函数接口(*Fore
 * 在`extern`块中声明外部函数的名字和签名
 
 * `extern`块内声明的函数对Rust来说总是不安全, 因为Rust无法检查这些函数;
-  * 因此调用外部代码时需要`unsafe`块
-
+  
+* 因此调用外部代码时需要`unsafe`块
+  
 * 用例
 
   ```rust
@@ -494,6 +495,384 @@ fn main() {
 
 # 3.高级类型
 
+## 3.1*newtype pattern*: 类型安全和抽象
+
+*newtype pattern*在很多任务上都很有用
+
+* 静态地确保某些值不被混淆
+* 抽象化一个类型的部分实现
+* 轻量级封装
+
+## 3.2类型别名
+
+类型别名
+
+* 形式: `type ALIAS = TYPE;`
+
+* 与*newtype pattern*的区别: *newtype pattern*创建一个新类型, 而类型别名只是某个类型的另一个名字
+
+例子
+
+```rust
+type Thunk = Box<dyn Fn() + Send + 'static>;
+```
+
+## 3.3*never*类型
+
+*never*类型`!`
+
+* 一种特殊的类型, 是类型理论术语中的*empty type*
+* `!`类型没有值
+* 用作函数的返回类型时, 表示一个函数永远不会返回
+* `!`类型的表达式可以强制转换成任何其他类型
+  * 属于`!`类型的表达式: `continue`, 永不结束的`loop`循环
+
+## 3.4`Sized`特征与动态大小类型
+
+动态大小类型(*dynamically sized type, DST*), 也叫做不定大小类型(*unsized type*)
+
+* 编译时不知道其大小, 直到运行时才得知
+
+* 如, `str`是DST; 注意是`str`, 不是`&str`
+
+对于DST, 只能在运行时才能知道类型的大小
+
+* 因此, 不能创建非引用的DST变量, 函数不能使用DST本身作为参数
+* 可以创建DST引用的变量, 或者将DST放在其他指针类型中
+  * 与普通引用对比, DST引用, 除了存储了内存位置, 还有一个额外的元数据来存储尺寸
+
+* 其实, 每个特征(*trait*)都是一个动态大小类型
+  * 所以在使用特征对象时, 要将特征放在某个指针类型中
+
+`Sized`特征
+
+* 确定一个类型的大小是否在编译时可知
+
+  * 当某个类型的大小在编译时可知, 则该类型自动实现`Sizd`特征
+
+* 在泛型函数中, Rust隐式地为每个类型形参添加一个`Sized`特征边界
+
+  * 默认情况下, 为每个类型形参添加一个`Sized`, 表示只接受编译时大小已知的类型
+
+  * 可以显式地为类型形参添加`?Sized`边界, 表示类型既可以是`Sized`, 也可以不是`Sized`
+
+    * 由于类型可能不是`Sized`的, 所以需要将其放入某种指针类型中
+
+  * 例子
+
+    ```rust
+    fn generic<T>(t: T) {
+        // --snip--
+    }
+    
+    fn generic<T: Sized>(t: T) {
+        // --snip--
+    }
+    
+    fn generic<T: ?Sized>(t: &T) {
+        // --snip--
+    }
+    ```
+
 # 4.高级函数和闭包
 
+## 4.1函数指针
+
+函数指针
+
+* 作用: 允许将某个函数作为其他函数的实参
+
+* `fn`类型就是函数指针
+
+* 形式: `fn(PARAMETER) -> RETURN`
+
+  * `PARAMETER`表示函数签名中的形参类型, `RETURN`表示返回类型
+
+* 函数指针是一个类型, 它实现了所有闭包特征(`Fn`, `FnMut`, `FnOnce`)
+
+* 例子
+
+  ```rust
+  fn add_one(x: i32) -> i32 {
+      x + 1
+  }
+  
+  fn do_twice(f: fn(i32) -> i32, arg: i32) -> i32 {
+      f(arg) + f(arg)
+  }
+  
+  fn main() {
+      let answer = do_twice(add_one, 5);
+  
+      println!("The answer is: {}", answer);
+  }
+  ```
+
+## 4.2返回闭包
+
+作为函数形参时, 闭包是由闭包特征表示的,  这意味着编译器不知道它的大小, 不能直接返回闭包
+
+* 所以需要将其放在某个指针中
+
+```rust
+fn returns_closure() -> Box<dyn Fn(i32) -> i32> {
+    Box::new(|x| x + 1)
+}
+```
+
 # 5.宏
+
+Rust的宏(*macro*)是指以下的宏
+
+* 声明式宏(*declarative macro*), 使用`macro_rules!`
+* 三种过程式宏(*procedural macro*)
+  * 自定义`#[derive]`宏
+  * 类属性宏(*Attribute-like macro*)
+  * 类函数宏(*Function-like macro*)
+
+## 5.1宏和函数的区别
+
+宏, 本质上是一种编写代码的方式, 所编写的代码将会生成其他代码, 这也就是元编程(*metaprogramming*)
+
+* 如`derive`属性, 它会为自定义的结构和枚举生成各种特征的实现代码
+* 如`prinlnt!`和`vec!`宏, 会展开成更多的代码
+
+宏与函数的不同
+
+* 一个函数签名必须声明形参的数量和类型; 一个宏接受参数的数量是可变的
+* 在编译器翻译代码前, 宏会进行代码展开; 而函数不会
+* 宏的定义比函数定义更加复杂, 更难以阅读, 理解和维护
+* 在某个文件中调用宏之前, 必须有该宏的定义, 或者将其引入作用域; 而函数可以在任意地方定义和调用
+
+## 5.2声明式宏与`marco_rules!`
+
+声明式宏(*declarative macro*), 也被称为*macros by example*, *`macro_rules!` macros*, 或直接称为*macro*
+
+* 声明式宏是Rust中宏最常用的形式
+* 声明式宏允许我们编写类似`match`表达式的宏: 比较一个值和*pattern*
+  * 这里的值是字面上的Rust源代码
+  * *pattern*对源代码的结构进行比较
+  * 如果源代码与*pattern*匹配, 则将这些源代码替换成该*pattern*所关联的代码
+  * 这些动作发生在编译过程
+
+可以使用`macro_rules!`来定义一个声明式宏
+
+* 以`macro_rules!`作为宏定义的开始, 后跟该宏的名字(没有感叹号), 接着是一对花括号, 里面是宏定义体
+* 在这样的宏定义体中是形如`PATTERN => BLOCK`的分支
+  
+* 宏*pattern*语法见[*the reference*](https://doc.rust-lang.org/reference/macros-by-example.html)
+  
+* 例子: `vec!`的简化定义
+
+  ```rust
+  
+  #![allow(unused_variables)]
+  fn main() {
+  	#[macro_export]
+  	macro_rules! vec {
+  	    ( $( $x:expr ),* ) => {
+   	       {
+   	           let mut temp_vec = Vec::new();
+   	           $(
+   	               temp_vec.push($x);
+   	           )*
+  	            temp_vec
+  	        }
+   	   };
+  	}
+      
+      let v: Vec<u32> = vec![1, 2, 3];
+  }
+  ```
+* `#[macro_export]`注解	
+
+  * 作用: 当该宏定义所在的crate被引入作用域时, 该宏也被引入, 应该是可用的;
+  * 如果没有该注解, 宏将不能被引入作用域
+
+## 5.3过程式宏
+
+宏的另一种形式是, 过程式宏(*procedural macro*)
+
+* 这类宏的行为与函数类似: 过程式宏接受一些代码作为输入, 对输入进行操作, 然后产生一些代码作为输出
+
+* 当创建过程式宏时, 其定义必须位于它们自己的crate中; 这种crate是特殊的crate类型
+
+  * 这么做是出于某些复杂技术原因; 将来希望能够消除这些限制
+
+* 定义过程式宏的形式如下
+
+  ```rust
+  use proc_macro;
+  
+  #[some_attribute]
+  pub fn some_name(input: TokenStream) -> TokenStream {
+  }
+  ```
+
+  * `some_attribute`属性表示正在创建的是哪种过程式宏
+  * `TokenStream`类型是定义在Rust的`proc_macro` crate中, 表示Rust代码
+
+### 自定义`derive`宏
+
+创建一个`hello_crate`, 里面有一个特征`HelloMacro`和特征的关联函数`hello_macro`; 
+
+* 为`HelloMarco`提供一个`derive`宏; 这样的话, 只要用户为其类型标注`#[derive(HelloMacro)]`, 类型将得到`HelloMacro`特征的默认实现
+
+过程
+
+1. 创建一个library crate, 名为`hello_macro`
+
+   ```shell
+   $ cargo new hello_macro --lib
+   ```
+
+1. 在文件*src/lib.rs* 中, 定义特征`HelloMacro`
+
+   ```rust
+   pub trait HelloMacro {
+       fn hello_macro();
+   }
+   ```
+
+3. 定义`derive`宏
+
+   1. (2020/4/28)由于技术原因, 需要为过程式宏创建一个crate
+
+      * 规范: 
+
+        * 名字为`foo`的crate定义过程式宏, 则该过程式宏的crate名字是`foo_derive`
+
+      * 在`hello_macro`项目中创建新crate, 名为`hello_macro_derive`
+
+        ```shell
+        $ cargo new hello_macro_derive --lib
+        ```
+
+      * 要使用过程式宏, 需要同时有`hello_crate`和`hello_crate_derive`这两个crate, 并要将其引入作用域
+
+      * 如果改变了`hello_crate`中的特征定义, 也需要改变`hello_crate_derive`中的过程式宏实现
+
+   2. 将`hello_macro_derive` crate声明为过程式宏crate, 并添加依赖`syn`和`quote` crate
+
+      文件*hello_macro_derive/Cargo.toml*中
+
+      ```toml
+      [lib]
+      proc-macro = true
+      
+      [dependencies]
+      syn = "1.0"
+      quote = "1.0"
+      ```
+
+   3. 在文件*hello_macro_derive/src/lib.rs*中添加过程式宏的实现
+
+      ```rust
+      extern crate proc_macro;
+      
+      use proc_macro::TokenStream;
+      use quote::quote;
+      use syn;
+      
+      #[proc_macro_derive(HelloMacro)]
+      pub fn hello_macro_derive(input: TokenStream) -> TokenStream {
+          // Construct a representation of Rust code as a syntax tree
+          // that we can manipulate
+          let ast = syn::parse(input).unwrap();
+      
+          // Build the trait implementation
+          impl_hello_macro(&ast)
+      }
+      ```
+
+      * `#[proc_macro_derive(HelloMacro)]`, 表示下面的函数是`HelloMacro`特征的`derive`过程式宏
+        * 当用户在某个类型上添加`#[derive(HelloMacro)]`时, 将会调用`hello_macro_derive`函数
+      * `proc_macro` crate是Rust的编译器API, 以允许我们读取和操纵Rust代码
+        * `proc_macro` crate是Rust语言自带的, 因此不需要在*Cargo.toml*中声明; 
+      * `syn` crate可以将Rust代码从`TokenStream`字符串中解析成`DeriveInput`数据结构, 以便进行其他操作
+      * `quote` crate可以将`syn`数据结构转换成Rust代码
+
+      ```rust
+      fn impl_hello_macro(ast: &syn::DeriveInput) -> TokenStream {
+          let name = &ast.ident;
+          let gen = quote! {
+              impl HelloMacro for #name {
+                  fn hello_macro() {
+                      println!("Hello, Macro! My name is {}!", stringify!(#name));
+                  }
+              }
+          };
+          gen.into()
+      }
+      ```
+
+      * `DeriveInput`中的`ident`字段是一个包含标识符的结构, 可以得到表示类型名的标识符
+      * `quote!`, 见[[the `quote` crate’s docs](https://docs.rs/quote)
+      * `stringify!`宏是Rust内置宏, 接受一个Rust表达式, 在编译时将表达式转换成字符串字面量
+        * 如表达式`1 + 2`, 变成字符串`"1 + 2"`
+
+4. 此时可以构建这两个crate
+
+5. 在其他的crate中使用`derive`宏
+
+   1. 在*Cargo.toml*文件中添加对`hello_macro`和`hello_macro_derive`的依赖
+
+   2. 在文件*src/main.rs*中
+
+      ```rust
+      use hello_macro::HelloMacro;
+      use hello_macro_derive::HelloMacro;
+      
+      #[derive(HelloMacro)]
+      struct Pancakes;
+      
+      fn main() {
+          Pancakes::hello_macro();
+      }
+      ```
+
+### 类似属性的宏
+
+类属性的宏, 与自定义`derive`宏类似; 不同于为`derive`属性生成代码, 类属性的宏允许你创建新的属性
+
+* 类属性的宏也更为灵活, 因为属性不仅可以用于结构和枚举, 还能用于其他item, 如函数
+
+例子: 有一个`route`属性被框架定义为过程式宏
+
+* 使用`route`属性注解一个函数
+
+  ```rust
+  #[route(GET, "/")]
+  fn index() {
+  ```
+
+* 它的宏定义签名应该如下
+
+  ```rust
+  #[proc_macro_attribute]
+  pub fn route(attr: TokenStream, item: TokenStream) -> TokenStream {
+  ```
+
+  * 第一个`TokenStream`形参, 表示属性的内容, 也就是`GET, "/"`部分
+  * 第二个`TokenStream`形参, 表示属性所标记的item, 也就是`index`函数及其函数体
+
+* 除此之外, 类属性宏与自定义`derive`宏的工作方式一致: 创建 `proc-macro` crate 类型的 crate 并实现希望生成代码的函数
+
+### 类似函数的宏
+
+例子: `sql!`宏
+
+* 调用`sql!`宏
+
+  ```rust
+  let sql = sql!(SELECT * FROM posts WHERE id=1);
+  ```
+
+* `sql!`宏的签名
+
+  ```rust
+  #[proc_macro]
+  pub fn sql(input: TokenStream) -> TokenStream {
+  ```
+
+* 除此之外, 类函数宏与自定义`derive`宏的工作方式一致
