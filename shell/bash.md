@@ -76,16 +76,21 @@ bash
 
 # 关于本文档的一些定义说明
 
+* *POSIX*: 基于unix的一套开源系统标准
 * *blank*: 空格*space*或制表符*tab*
-* *word*: 一系列字符; 被*bash shell*认为是一个独立的单元; *word*不包含未带引号的*metacharacter*
-* *operator*: *control operator*或*redirection operator*
-* *token*: 要么是*word*, 要么是*operator*
+* *token*: 是指*word*或者*operator*
+  * *word*: 一系列字符; 被*bash shell*认为是一个独立的单元; *word*不包含未带引号的*metacharacter*
+  * *operator*: 分为*control operator*和*redirection operator*; 运算符至少包含一个未引用的*metacharacter*
+    * *control operator*: 有控制功能的*token*
+      * `||` `&` `&&` `;` `;;` `;&` `;;&` `(` `)` `|` `|&` `<newline>`
+    * *redirection operator*
+* *metacharacter*: 用于分隔*word*的字符; 未引用的*metacharacter*才能分隔*word*
+  * `|` `&` `;` `(` `)` `<` `>` `<space>` `<tab>` `<newline>`
+* *field*: 一个文本单元, 是*shell expansions*之一的结果; 在展开后, 当执行命令时*field*被用作命令名和参数
+* *filename*: 用于标识文件的字符串
 * *name* / *identifier*: 以英文字母或下划线开头的, 只由英文字母, 数字和下划线组成的*word*
-* *metacharacter*: 用于分隔*word*的字符; 不带引号时才能分隔字符
-  * `|` `&` `;` `(` `)` `<` `>` `space` `tab` `newline`
-* *control operator*: 有控制功能的*token*
-  * `||` `&` `&&` `;` `;;` `;&` `;;&` `(` `)` `|` `|&` `<newline>`
-* *exit statu*退出状态: 一个命令返回给其*caller*的值; 该值是8位大小
+  * *name*通常被用作*shell*变量名和函数名
+* *exit status* / *return status*: 一个命令返回给其*caller*的值; 该值是8位大小
 
 ## 保留字/关键字
 
@@ -103,19 +108,12 @@ bash
 
 ## *Shell* 语法
 
-当*shell*读取输入时, 它将进行以下操作
-
-* 如果该输入是表示注释的开头, *shell*将忽略注释符号(`#`)和该行的剩余部分
-* 其他情况下
-  * *shell*读取输入并使用引用规则为每个单词和字符赋予含义, 将其分成单词(*word*)和运算符(*operator*), 
-  * 然后, *shell*解析这些*token*, 将其分为命令和其他结构, 删除某些单词或字符的特殊含义, 展开某些*token*, 根据需要进行重定向, 执行指定的命令, 等待命令的退出状态并令该退出状态能够进一步检查或处理
-
 ### 1.*Shell* 操作
 
 *shell*主要执行以下操作
 
 1. 读取输入: 输入源可以是一个文件, `-c`调用选项提供的一个字符串, 或者用户的终端
-2. 根据引用原则将输入分成单词(*word*)和运算符(*operator*): 
+2. 将输入分成单词(*word*)和运算符(*operator*), 遵守引用规则
    * *tokens*被*metacharacters*分隔
    * 别名展开
 3. 将*tokens*解析为简单命令和复合命令
@@ -143,37 +141,40 @@ bash
 
 在一对单引号中的字符保留了其本来的字面值
 
-* 一个单引号不能出现在双引号中, 即使有一个`\`前缀
+* 一个单引号不能出现在一对单引号中, 即使有一个`\`前缀
 
 #### 2.3双引号`"`
 
 除了一些例外, 在一对双引号中的字符保留了其本来的字面值
 
-* 例外: `$`, `` ` ``, `\`, `!`(当历史展开是可用时)
+例外: 
 
-`!`
+* `!`
 
-* 当历史展开已启用时, 且*shell*不处于*POSIX*模式, `!`有特殊含义, 在双引号中依然持有其特殊含义
+  * 当*shell*处于*POSIX*模式, `!`在双引号中没有特殊含义, 即使启用历史展开
+  * 当历史展开已启用时, 且*shell*未处于*POSIX*模式, `!`在双引号中保留特殊含义
 
-* 其他情况, `!`没有特殊含义
+* `$`和`` ` ``
 
-`$`和`` ` ``
+  * 在双引号中依然持有其特殊含义
 
-* 在双引号中依然持有其特殊含义
+* `\`
 
-`\`
+  *  如果`\`后跟以下字符之一, `\`在双引号中保留特殊含义, 即作为转义符; 因此这样的`\`会被移除
+    * `$`, `` ` ``, `"`, `\` , `<newline>`
 
-* `\`在双引号中依然持有其特殊含义的情况: `\`后面有以下字符
-  * `$`, `` ` ``, `"`, `\` , `newline`
+  * 其他情况, `\`只有字面意义, 因此这样的`\`不会被移除
 
-更多: 特殊形参`*`和`@`在双引号中也是持有其特殊含义的
+* 特殊形参`*`和`@`在双引号中也是保留其特殊含义的
+
+一对双引号中能够包含被转义的双引号
 
 #### 2.4ANSI-C引用
 
-形如`$'string'`的单词被展开成字符串
+形如`$'string'`的*word*被展开成字符串
 
-* 其中的转义序列被替换成ANSI-C标准对应的字符
-* 展开后的结果是单引号引用的, 前面的`$`字符被移除
+* 其中的转义序列被替换成ANSI-C标准中对应的字符
+* 展开后的结果依然是单引号引用的, 不过前面的`$`字符被移除
 
 | `\`转义序列  | 描述                                                         |
 | ------------ | ------------------------------------------------------------ |
@@ -197,10 +198,11 @@ bash
 
 #### 2.5语言环境翻译Locale translation
 
-形如`$"string"`的单词根据当前语言环境进行展开
+形如`$"string"`的*word*根据当前语言环境进行展开
 
-* 如果当前语言环境是`C`或`POSIX`时, 则直接移出`$`字符
-* 展开后的结果是双引号引用的, 前面的`$`字符被移除
+* 如果当前语言环境(*current locale*)是`C`或`POSIX`时, 则直接移除`$`字符
+  * 其他情况根据*locale*进行翻译
+* 展开后的结果依然是双引号引用的, 不过前面的`$`字符被移除
 
 *message catalog*
 
@@ -521,7 +523,7 @@ function name [()] compound-command [ redirections ]
 * `export`
   * 使用`-f`选项, 可以导出函数, 使得*subshell*自动定义对应的函数
 
-## *Shell*形参
+## *Shell* 形参
 
 *shell*形参是一个存储值的实体, 可以是一个*name*, 一个数字或者特殊字符之一
 
@@ -825,20 +827,271 @@ substring expansion形式
 
 ### 4.Command Substitution
 
+*command substitution*允许将命令替换成命令的输出
+
+* 形式
+  * `$(command)`
+  * `` `command` ``
+* *bash*在一个*subshell*环境指向*command*, 然后将该*command*替换成其标准输出
+  * 会删除标准输出中结尾的所有`newline`, 但不会删除嵌套的`newline`; 不过嵌套的`newline`在*word splitting*中被移除
+
+* 使用反引号形式时, *command*中的反斜杠只有字面意思, 除非后接`$`, `` ` ``或`\`
+* *command substitution*可以嵌套; 若使用反引号形式时, 需要为嵌套的反引号加上`\`
+
 ### 5.Arithmetic Expansion
+
+*arithmetic expansion*允许将其展开成算术表达式的求值结果
+
+* 形式: `$(( expression ))`
+* 其中的*expression*如同在双引号中一样, 就是说*expression*中的所有*token*可以执行*parameter and variable expansion*, *command substitution*, 和*quote removal*
+* 如果*expression*是无效的, *bash*向标准错误输出信息, 且不会发生替换
+* *arithmetic expansion*可以嵌套
 
 ### 6.Process Substitution
 
+*process substitution*允许一个进程的输入输出被一个文件名引用
+
+* 形式
+  * `<(list)`
+  * `>(list)`
+* 进程*list*异步执行, 然后其输出或输入作为一个文件名出现
+  * 作为*process substitution*的结果, 该文件名可以像其他文件名那样作为命令的实参
+  * 如果使用`>(list)`, 向文件名写入, 将会为*list*提供输入
+  * 如果使用`<(list)`, 读取文件名, 将会得到*list*的输出
+* *process substitution*需要系统支持*named pipes(FIFOs)*或为`/dev/fd`方法
+
 ### 7.Word Splitting
+
+*shell*将`$IFS`中的每个字符当作定界符, 使用这些字符将其他展开的结果分割成多个*word*
+
+* *parameter expansion*, *command substitution*, 和*arithmetic expansion*的结果, 若没有出现在双引号中, 则进行*word splitting*
+
+* `IFS`
+  * 如果`IFS`未设置, 或其值为`<space><tab><newline>`, 也就是默认值, 被称为`IFS`空白字符(*whitespace charater*)
+    * 在之前展开的结果中, 忽略头尾部分的由空白字符组成的序列
+    * 在之前展开的结果中, 不在头尾部分的任一`IFS`字符序列用于分割*word*
+  * 如果`IFS`有非默认的值, 
+    * 在之前展开的结果中, 若某个空白字符在`IFS`中, 忽略头尾部分的由对应的空白字符组成的序列, 
+    * 在之前展开的结果中, 非空白字符加上任一相邻空白字符, 或任一`IFS`空白字符序列都能分割*word*
+  * 如果`IFS`为空, 则不会进行*word splitting*
+* `null`参数
+  * 显式的*null*参数, 如`""`或`''`, 不会被忽略掉, 将作为空字符串传递给命令
+  * 若被引用的*null*参数是某个*word*的一部分, 且该*word*的展开不为空, 则移除该*null*
+    * 如`-d''`展开成`-d`
+  * 非引用的隐式的*null*参数会被移除
 
 ### 8.Filename Expansion
 
+*filename expansion*
+
+* 在*word splitting*之后, 除非设置了`-f`选项, *bash*会扫描每个*word*以寻找字符`*`, `?`和`[`
+* 若找到, 该*word*被认为是一个模式, 并将该*word*替换成一个与其匹配的文件名列表, 该列表按字母顺序排列
+  * 如果启用`nocaseglob`选项, 则匹配时不考虑字母的大小写
+  * 如果没有找到匹配的文件名, 
+    * 若未启用`nullglob`选项, 则该*word*保持不变
+    * 若启用`nullglob`选项, 则移除该*word*
+    * 若启用`failglob`选项, 则打印错误信息并不执行所在的命令
+
+`.`和*filename expansion*
+
+* 当某个模式用于*filename expansion*时, 若`.`字符在文件名的开头或紧接一个`/`字符, 必须显式匹配该`.`字符, 除非启用`dotglob`选项
+* 文件名`.`和`..`必须显式匹配, 即使启用`dotglob`
+* 其他情况下, `.`不被特殊对待
+
+`/`和*filename expansion*
+
+* 当匹配文件名时, `/`字符必须总是与模式中的`/`字符显式匹配
+
+`GLOBIGNORE` *shell*变量
+
+* 用于限制与模式匹配的文件名字的集合
+* 若设置`GLOBIGNORE`, 某个文件名与模式匹配成功, 如果它也与`GLOBIGNORE`中的模式匹配, 则该文件名被移出匹配列表; 也就是忽略与`GLOBIGNORE`中的模式匹配的文件名
+* 若设置`GLOBIGNORE`, 且不为空
+  * 会启用`dotglob` *shell*选项, 因此所有其他以`.`开头的文件名会进行匹配
+    * 可以向`GLOBIGNORE`添加`.*`模式, 以忽略以`.`开头的文件名
+  * 总是忽略文件名`.`和`..`
+* 当未设置`GLOBIGNORE`时`dotglob`选项是未启用的
+* 若启用`nocasetoption`选项, 与`GLOBIGNORE`中的模式匹配不会考虑大小写
+
+#### 8.1模式匹配
+
+除了以下描述的特殊模式字符外, 在模式中的其他字符与它自己匹配
+
+* 空字符不可以出现在模式中
+* 反斜杠`\`会转义特殊模式字符; 用于转义的反斜杠在匹配时被抛弃
+
+以下是特殊模式字符
+
+`*`
+
+* 匹配任一字符串, 包括空字符串;
+* 当启用`globstar` *shell*选项时, 在*filename expansion*中, `**`模式会匹配所有文件和零个或多个目录和子目录;
+  * 如果模式为`**/`, 则只匹配目录和子目录
+
+`?`
+
+* 匹配任何单个字符
+
+`[...]`
+
+* 匹配其中任一字符
+
+* 范围表达式: 一对字符被`-`分隔, 表示这两个字符之间的字符闭区间
+
+  * 使用当前语言环境的排列序列和字符集合
+  * 范围表达式的排序顺序取决于当前语言环境(*locale*), `LC_COLLATE`和`LC_ALL` *shell*变量(如果有的话)
+    * 要使用*C locale*, 可以将`LC_COLLATE`或`LC_ALL`设置为`'C'`, 或者启用`globasciiranges` *shell*选项
+
+* 另一种形式
+
+  * 若紧接`[`后的第一个字符为`!`或`^`, 表示匹配任何未包含的字符
+
+* 匹配`-`或`]`
+
+  * 若想要匹配`-`, 则将其放在最前面或最后面
+  * 若想要匹配`]`, 则将其放在最前面
+
+* 字符类别
+
+  * 形式: `[:class:]`
+
+  * 在`[...]`中, 使用`[:class:]`指定某一类字符
+
+  * 可用的字符类别(*POSIX*标准)
+
+    ```shell
+    alnum   alpha   ascii   blank   cntrl   digit   graph   lower
+    print   punct   space   upper   word    xdigit
+    ```
+
+* 等价类别(*equivalence class*)
+  * 形式: `[=C=]`
+  * 在`[...]`中, 使用`[=C=]`指定等价类别, 以匹配所有与`C`的*collation weight*相同的字符
+    * *collation weight*由当前*locale*定义
+* 在`[...]`中, `[.symbol.]` matches the collating symbol symbol.
+
+
+
+若`shopt`启用`extglob` *shell*选项, 则可以使用以下的扩展模式匹配运算符
+
+* 以下的*pattern-list*是一个或多个`|`分隔的模式列表
+
+| 形式              | 描述                                 |
+| ----------------- | ------------------------------------ |
+| `?(pattern-list)` | 匹配零个或一个给定模式的*occurrence* |
+| `*(pattern-list)` | 匹配零个或多个给定模式的*occurrence* |
+| `+(pattern-list)` | 匹配一个或多个给定模式的*occurrence* |
+| `@(pattern-list)` | 匹配给定模式                         |
+| `!(pattern-list)` | 匹配除了给定模式以外的任何内容       |
+
 ### 9.Quote Removal
+
+在经过前面的展开后, 所有未引用的, 且不是之前展开生成的`\`, `'`和`"`字符都被移除
 
 ## 重定向
 
+在执行命令之前, 命令的输出和输入可以进行重定向
+
+* 重定向运算符(*redirection operator*):
+* 重定向操作的处理顺序是它们从左向右出现的顺序
+
+重定向与文件描述符
+
+* 可以把一个文件描述符或者`{varname}`在重定向运算符前
+  * 若使用`{varname}`形式, 
+    * 该重定向的作用域是超过该命令的作用域
+    * 对于除了`>&-`和`<&-`外的其他重定向运算符, *shell*会分配一个大于等于10的文件描述符, 并将其赋值给`varname`
+    * 对于`>&-`和`<&-`重定向运算符, `varname`的值表示要关闭的文件描述符
+* 如果省略了文件描述符
+  * 当重定向运算符的第一个字符为`<`, 则重定向默认指向标准输入(文件描述符0)
+  * 当重定向运算符的第一个字符为`>`, 则重定向默认指向标准输出(文件描述符1)
+* 谨慎使用大于9的文件描述符进行重定向, 因为它们可能与*shell*内部使用的文件描述符冲突
+* 打开或创建文件失败, 会导致重定向失败
+
+以下描述中, 跟在重定向运算符后的*word*, 除非另作说明, 都可以进行: 
+
+* brace expansion, tilde expansion, parameter expansion, command substitution, arithmetic expansion, quote removal, filename expansion, and word splitting.
+* 如果该*word*展开成多个*word*, *bash*报错
+
+*bash*在重定向时会特殊处理的文件名;
+
+* 若操作系统提供这些特殊文件, *bash*将会使用它们; 否则, *bash*会在内部模拟它们的行为
+
+| 文件名;              | 描述                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| `/dev/fd/FD`         | 若*FD*是有效的整数, 复制该文件描述符*FD*                     |
+| `/dev/stdin`         | 复制文件描述符0                                              |
+| `/dev/stdout`        | 复制文件描述符1                                              |
+| `/dev/stderr`        | 复制文件描述符2                                              |
+| `/dev/tcp/host/port` | 若*host*是有效主机名或网络地址, *port*是一个整数端口号或服务名, *bash*试图打开对应的TCP套接字(*socket*) |
+| `/dev/udp/host/port` | 若*host*是有效主机名或网络地址, *port*是一个整数端口号或服务名, *bash*试图打开对应的UDP套接字(*socket*) |
+
+### 1.输出重定向
+
+重定向输出的一般形式: `[n]>[|]word`
+
+重定向输出的一般过程
+
+* 展开*word*, 将展开结果当作文件名
+* 若该文件不存在, 则创建该文件; 若该文件存在, 则将其大小截断成零.
+* 打开或创建该文件后, 文件描述符*n*向其写入数据
+
+`noclobber`选项
+
+* 若重定向运算符为`>`, 且用`set`启用`noclobber`选项, 那么当*word*所表示的文件存在, 并且是普通文件时会导致重定向失败
+* 若重定向运算符为`>`或`>|`, 且未启用`noclobber`选项, 那么即使*word*所表示的文件存在, *bash*依然试图对其重定向
+
+### 2.输入重定向
+
+重定向输入的一般形式: `[n]<word`
+
+重定向输入的一般过程
+
+* 展开*word*, 将展开结果当作文件名
+* 打开该文件后, 文件描述符*n*向其写入数据
+
+### 3.追加重定向输出
+
+### 4.重定向标准输出和标准错误
+
+### 5.追加标准输出和标准错误
+
+### 6.Here documents
+
+### 7.Here strings
+
+### 8.复制文件描述符
+
+### 9.移动文件描述符
+
+### 10打开文件描述符
+
 ## 执行命令
+
+### 1.简单命令展开
+
+### 2.命令查找和执行
+
+### 3.命令执行环境
+
+### 4.环境
+
+### 5.退出状态
+
+### 6.信号
 
 ## *Shell* 脚本
 
-## 进程协作
+# *Shell*内置命令
+
+# *Shell*变量
+
+# *Bash*特性
+
+# *Job*控制
+
+# 命令行编辑
+
+# 交互地使用历史
+
+# 安装*Bash*
