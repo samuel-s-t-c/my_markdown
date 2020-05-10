@@ -1030,11 +1030,9 @@ substring expansion形式
 
 重定向输出的一般形式: `[n]>[|]word`
 
-重定向输出的一般过程
-
 * 展开*word*, 将展开结果当作文件名
 * 若该文件不存在, 则创建该文件; 若该文件存在, 则将其大小截断成零.
-* 打开或创建该文件后, 文件描述符*n*向其写入数据
+* 打开或创建该文件后, 文件描述符*n*可以写入数据到该文件
 
 `noclobber`选项
 
@@ -1045,22 +1043,73 @@ substring expansion形式
 
 重定向输入的一般形式: `[n]<word`
 
-重定向输入的一般过程
+* 展开*word*, 将展开结果当作文件名
+* 打开该文件后,  文件描述符*n*可以从该文件读取数据
+
+### 3.追加(appending)重定向输出
+
+*Appending redirected output*的一般形式: `[n]>>word`
 
 * 展开*word*, 将展开结果当作文件名
-* 打开该文件后, 文件描述符*n*向其写入数据
-
-### 3.追加重定向输出
+* 若该文件不存在, 则创建该文件
+* 打开或创建该文件后, 文件描述符*n*向该文件*append*数据
 
 ### 4.重定向标准输出和标准错误
 
+将标准输出(文件描述符1)和标准错误(文件描述符2)同时重定向到*word*所表示的文件
+
+* 两种格式: 首选第一种格式
+  * `&>word`
+  * `>&word`
+  * 在语义上等同于: `>word 2>&1`
+* 使用第二种格式时, *word*不能展开成一个数字或`-`;
+  * 若这样做的话, 出于兼容原因, 将应用其他重定向(*duplicating file descriptors*)
+
 ### 5.追加标准输出和标准错误
+
+将标准输出(文件描述符1)和标准错误(文件描述符2)同时*append*重定向到*word*所表示的文件
+
+* 格式: `&>>word`
+* 语义上等同于: `>>word 2>&1`
 
 ### 6.Here documents
 
+* 过程
+  * *shell*从当前命令中读取输入, 直到看到一行只包含*word*的输入(尾部不能有*blank*)
+  * 然后, 至此为之的所有读取行(*here-document*), 被用于所在的命令的文件描述`n`
+    * 若没有指定文件描述符`n`, 则默认为标准输入
+  * 若重定向运算符为`<<-`, *here-document*和*delimiter*行中的所有在行头的*tab*字符都会被删除
+
+* 格式
+
+  ```shell
+  [n]<<[-]word
+  		here-document
+  delimiter
+  ```
+
+* 说明:
+  * *word*不能执行:  parameter and variable expansion, command substitution, arithmetic expansion, 或filename expansion
+  * 若*word*的任意部分被引用, 则*delimiter*是*word*的*quote removal*的结果, 并且*here-document*不能展开
+  * 若*word*未被引用, *here-document*可以执行: parameter expansion, command substitution, 和arithmetic expansion; 其中的`\<newline>`会被忽略, `\`可以用于引用`\`, `$`和`` ` ``
+
 ### 7.Here strings
 
+*here document*的变体形式: `[n]<<< word`
+
+* *word*可以执行:  tilde expansion, parameter and variable expansion, command substitution, arithmetic expansion, 和quote removal
+  * 不会执行: pathname expansion, word splitting
+
+区别:
+
+* 其结果为一行字符串, 尾部有一个`<newline>`
+
 ### 8.复制文件描述符
+
+重定向运算符`<&`, 用于复制输入文件描述符
+
+* 形式: `[n]<&word`
+* 
 
 ### 9.移动文件描述符
 
