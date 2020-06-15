@@ -1143,4 +1143,4 @@ substring expansion形式
 
 # 交互地使用历史
 
-# 安装*Bash*
+# 安装*Bash*	
