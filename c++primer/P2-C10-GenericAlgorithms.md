@@ -533,7 +533,7 @@ for (auto r_iter = vec.crbegin();
 * 属于该类别的迭代器类型: `istream_iterator`
 * 要求该类别迭代器的算法: `find`, `accumulate`
 
-输出迭代器(**output iterator**): 可以看作输入跌倒去功能上的补集
+输出迭代器(**output iterator**): 可以看作输入迭代器功能上的补集
 
 * 必须支持以下操作
   * `++`: 前置和后置递增迭代器
