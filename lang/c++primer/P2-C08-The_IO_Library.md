@@ -28,7 +28,7 @@ io类型, 也称为流类型
 |            | `stringstream`, `wstringstream`: 读取和写入`string`     |
 
 * io类的对象默认关联到用户的控制台窗口
-* 表中以`w`开头的io类型用于处理宽字符(**wide characters**); 相应的对象有`wcin`, `wcout`, `wcerr`等等
+* 表中以`w`开头的io类型用于处理宽字符(**wide characters**); 相应的对象有`wcin`, `wcout`, `wcerr`等对象
 * io类型间的关系是继承关系
   * 具体地, `ifstream`和`istringstream`继承于`istream`, `ofstream`和`ostringstream`继承于`ostream`.
 

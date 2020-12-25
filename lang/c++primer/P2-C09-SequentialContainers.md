@@ -331,7 +331,7 @@ while (begin != end) {
   * `array`不支持这些操作
   * `forward_list`有专属的`erase`成员
   * `forward_list`不支持`pop_back`
-  * `pop_front`只对`vector`和`string`有效
+  * `pop_front`不对`vector`和`string`有效
   * 这些操作不检查其参数
 * 警告
   * 对于`deque`, 删除`deque`中除首尾位置之外的任何元素都会使所有迭代器, 指针和引用失效
