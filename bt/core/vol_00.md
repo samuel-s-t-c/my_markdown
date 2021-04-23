@@ -1,4 +1,4 @@
-# Part A
+# Part A 目录
 
 目录(重点部分以**粗体**标记)
 
@@ -7,6 +7,7 @@
   * **Part B: BLUETOOTH COMPLIANCE REQUIRMENTS**: 
   * Part C: 贡献者
 * Vol 1: Architecture, Mixing, and Convenctions
+  * **Part A: Architecutre**
 * Vol 2: BR/EDR Controller
 * Vol 3: Host
 * Vol 4: Host Controller Interface
