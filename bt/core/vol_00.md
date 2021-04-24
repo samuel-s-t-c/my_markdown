@@ -8,6 +8,11 @@
   * Part C: 贡献者
 * Vol 1: Architecture, Mixing, and Convenctions
   * **Part A: Architecutre**
+  * **Part B: Acronyms & Abberviations**
+  * Part C: Core specification change history
+  * Part D: Mixing of specification verions
+  * **Part E: General Terminology and Interpretation**
+  * **Part F: Controller Error Codes**
 * Vol 2: BR/EDR Controller
 * Vol 3: Host
 * Vol 4: Host Controller Interface
