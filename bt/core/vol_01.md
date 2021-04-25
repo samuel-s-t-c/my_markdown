@@ -220,9 +220,62 @@ Protocol Adaptation Layer(PAL)
 
 蓝牙核心系统由一个host, 一个主要controller和零个或多个次要controller组成
 
-* 蓝牙BR/EDR核心系统的最小实现:
-
 ![bluetooth_core_system_architecture](vol_01.assets/bluetooth_core_system_architecture.png)
+
+* 注意: 图中每个功能块仅用于辅助理解; 具体实现可能会不同
+* 如图所示: 
+  * BR/EDR Controller: 由Link Manager, Link Controller和BR/EDR Radio组成
+  * AMP Controller: 由AMP PAL, AMP MAC和AMP PHY组成
+  * LE Controller: 由Link Manager, Link Controller和LE Radio组成
+  * BR/EDR Host: 由L2CAP, SDP和GAP组成
+  * LE Host: 由L2CAP, SMP, Attribute protocol, GAP和Generic Attribute Profile(GATT)组成
+  * BR/EDR/LE Host: 由BR/EDR Host和LE Host所需的组成
+  * HCI(可选): 作为Controller和Host之间的接口
+
+* 蓝牙核心系统协议有
+  * 无线电协议(PHY)
+  * Link Control and Link Manager protocol (LC/LM), 或Link Layer protocol(LL)
+  * AMP PAL
+  * Logical Link Control and Adaptation protocol(L2CAP)
+  * AMP Manager protocol
+
+* 蓝牙核心系统提供了三种服务
+  * device control service: 改变蓝牙设备的行为和模式
+  * transport control service: 创建, 修改和发布traffic bearers(channels and links)
+  * data service:  向traffic bearer提交用于传送的数据
+  * 前两种服务属于C-plane, 第三种服务属于U-plane
+
+### 2.1 core architectureal block
+
+Host architectural blocks
+
+* channel manager: 使用L2CAP协议; 创建, 管理和关闭L2CAP频道
+  * L2CAP频道用于传输服务协议和应用数据流
+* L2CAP resource manger: 
+  * 管理PDU分块的提交顺序, 和L2CAP频道之间的调度
+  * traffic conformance policing: 保证应用所提交的L2CAP SDU是在其已协商好的QoS设置的范围中
+* security Manager Protocol: SMP是pear-to-pear protocol, 用于生成encryption key和identity key
+  * 仅用于LE
+* Attribute Protocol
+* AMP Manager protocol
+* Generic Attribute Profile
+* Generic Access Profile
+
+BR/EDR/LE Controller architecturral blocks
+
+* device manager
+* Link manager
+* Baseband resource manager
+* Link manager
+* PHY
+* Isochronous Adaptation Layer
+
+AMP Controller architectural blocks
+
+* AMP HCI
+* AMP PAL
+* AMP MAC
+* AMP PHY
 
 ## 3 数据传输架构
 
