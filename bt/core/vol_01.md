@@ -245,49 +245,27 @@ Protocol Adaptation Layer(PAL)
   * data service:  向traffic bearer提交用于传送的数据
   * 前两种服务属于C-plane, 第三种服务属于U-plane
 
-### 2.1 core architectureal block
+### 2.1 core architectureal block*
 
-Host architectural blocks
-
-* channel manager: 使用L2CAP协议; 创建, 管理和关闭L2CAP频道
-  * L2CAP频道用于传输服务协议和应用数据流
-* L2CAP resource manger: 
-  * 管理PDU分块的提交顺序, 和L2CAP频道之间的调度
-  * traffic conformance policing: 保证应用所提交的L2CAP SDU是在其已协商好的QoS设置的范围中
-* security Manager Protocol: SMP是pear-to-pear protocol, 用于生成encryption key和identity key
-  * 仅用于LE
-* Attribute Protocol
-* AMP Manager protocol
-* Generic Attribute Profile
-* Generic Access Profile
-
-BR/EDR/LE Controller architecturral blocks
-
-* device manager
-* Link manager
-* Baseband resource manager
-* Link manager
-* PHY
-* Isochronous Adaptation Layer
-
-AMP Controller architectural blocks
-
-* AMP HCI
-* AMP PAL
-* AMP MAC
-* AMP PHY
+简要说明核心结构中的功能块
 
 ## 3 数据传输架构
 
-## 4 通讯拓扑和操作
+![bluetooth_generic_data_transport_architecture](vol_01.assets/bluetooth_generic_data_transport_architecture.png)
 
-## 5 安全性概述
+由于效率和历史原因, 蓝牙传输架构把Logibal Layer分为logical link和logical transport
 
-## 6 蓝牙应用架构
+* logical transport sub-layer是用于描述某些logical link类型之间的相互依赖关系
+* ACL, SCO和eSCO连接属于logical transport, 但是行为上通常像是单独的物理链路. 实际上, 它们都会共享使用某些资源, 如LT_AAR和ARQ
 
-## 7 共存与配合
+### 3.1 core traffic bearers
 
-## 8 使用BLE寻找方向
+下图展示蓝牙核心系统的标准traffic bearer
 
-# Part B 缩写
+![bluetooth_traffic_bearers](vol_01.assets/bluetooth_traffic_bearers.png)
+
+* traffic bearer在阴影圆角长方形中
+  * data traffic type与建议使用nknl的traffic bearer连起来
+
+
 
