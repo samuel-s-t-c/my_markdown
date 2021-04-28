@@ -252,7 +252,126 @@ CLK是将CLKR加上time_base_offset和slave_offset得到的
 
 * master应该在偶数编号的slot中开始传送, 即$CLK_1=0$
 * slave应该在奇数编号的slot中开始传送, 即$CLK_1=1$
-* 
+
+##### 2.2.5.1 Piconet physical channel timing
+
+图中以单slot的数据包为例
+
+* `f(k)`表示第k个time slot的channel hopping frequency
+* 在传送数据包后, 被返回的数据包在$N\times625{\mu}s$后得到; N为大于0的奇数, 具体数值取决于被传送的数据包.
+* 不确定性窗口(uncertainty window)是在准确时间附近的, 长度为$20{\mu}s$
+
+![rxtx_cycle_of_master_transceiver_in_normal_mode](vol_02.assets/rxtx_cycle_of_master_transceiver_in_normal_mode.png)
+
+* master transmission使用master的$CLKN_2$, 即当前传送会被调度到在上一个master TX burst开始后的$M\times1250{\mu}s$, 其中M为大于0的偶数
+  * 疑问: 为什么不是$M\times 620{\mu}s$,  其中M为大于0的偶数
+
+![rxtx_cycle_of_slave_transceiver_in_normal_mode](vol_02.assets/rxtx_cycle_of_slave_transceiver_in_normal_mode.png)
+
+* slave会维护一个关于master的CLKN的估计; 通过slave的CLKN偏移得到
+  * 该偏移量在每次接收master的数据包时更新
+* slave transmission会被调度到slave RX数据包的开始后的$N\times625{\mu}s$, 其中N为大于0的正奇数
+
+##### 2.2.5.2 Piconet physical channel re-synchronization
+
+在微微网的物理频道中, 每200ms内slave没有收到master的数据包, slave会失去与master的同步性
+
+* 如果使用低功率的时钟, 失去同步的时间会比200ms更短
+
+* 在失去同步后, slave只有重新同步后才能发送信息
+
+重新同步
+
+* slave在rx slot中监听master
+
+* slave的synchronization search window的长度从$20{\mu}s$开始增加
+* 如果search window的长度超过$1250{\mu}s$, 连续的windows之间应该避免相互覆盖,  所以下一个window会移至不被覆盖的合适位置
+  * 例如: $1250{\mu}s<长度{\le}2500{\mu}s$时, 连续window的位置应该是$f(k), f(k+4), ..f(k+4i)$
+
+* 由于长度增加导致uncertainty window向前面的tx slot扩展, 此时依然使用rx hop frequency.
+* 在slave重新同步时, master建议传送single slot数据包
+
+![rx_timing_of_slave_returning_from_hold_mode](vol_02.assets/rx_timing_of_slave_returning_from_hold_mode.png)
+
+### 2.3 Adapted piconet physical channel
+
+* 在adapted piconet physical channel上的物理链路应该至少使用$N_{min}$个RF频道
+  * $N_{min}$为20
+
+* adapted piconet physical channel使用adapted channel hooping sequence
+
+### 2.4 page scan物理频道
+
+虽然在建立连接前master和slave的角色是尚未定义的, 此时
+
+* master表示paging设备, 该设备进入连接状态后成为master
+* slave表示page scanning设备, 该设备进入连接状态后成为slave
+
+#### 2.4.1 用于paging的CLKE
+
+paging设备的CLKE是page scanning设备的CLKN的估计时钟
+
+* paging设备, 也就是pager; page scanning设备, 也就是recipient
+* 使用recipient的CLKN, pager可以加快连接建立的速度
+
+![derivation_of_CLKE](vol_02.assets/derivation_of_CLKE.png)
+
+#### 2.4.2 Hopping characteristics
+
+page scan物理频道使用的hopping pattern
+
+* 是一个短的伪随机hopping序列, 由scanning设备的蓝牙地址决定
+
+page scan物理频道的timing由scanning设备的CLKN决定
+
+更多见2.6节
+
+#### 2.4.3 paging过程的timing
+
+在paging过程中, master应该传送paging信息, 与要连接的slave相关.
+
+* 由于paging信息是一个很短的数据包, hop速率是3200跳每秒;
+  * 在单个tx slot区间中, paging设备应该在两个不同的hop频率上传送.
+    * 第一次传送在$CLK_0=0$时间, 在$f(k)$ tx hopping 频率开始
+    * 第二次传送在$CLK_0=1$开始, 在$f(k+1)$ tx hopping 频率开始
+  * 在单个rx lsot区间中, paging设备应该在两个不同的hop频率上监听slave page响应信息
+    * 第一次接收在$CLK_0=0$时间, 在$f'(k)$ rx hopping 频率开始
+    * 第二次接收在$CLK_0=1$开始,  在$f'(k+1)$ rx hopping 频率开始
+* 不确定性窗口是接收开头的${\pm}10{\mu}s$
+
+![rxtx_cycle_of_transceiver_in_page_mode](vol_02.assets/rxtx_cycle_of_transceiver_in_page_mode.png)
+
+* $f(k)$  is used for the frequencies of the page hopping sequence and $f'(k)$ denotes the corresponding page response sequence frequencies.
+
+#### 2.4.4 Page response timing
+
+* 在收到master page message的$625{\mu}s$后, slave发送slave page response message; 然后, 假设master page message的hop frequency为f(k), 则slave在f(k+1)频率上监听master page response message.
+* mater在发送page message后, 如果收到slave page response message, 则在离第一条page message$1250{\mu}s$后发送master page response message
+
+![timing_of_page_response_packets_on_successful_page_in_first_half_slot](vol_02.assets/timing_of_page_response_packets_on_successful_page_in_first_half_slot.png)
+
+![timing_of_page_response_packets_on_successful_page_in_second_half_slot](vol_02.assets/timing_of_page_response_packets_on_successful_page_in_second_half_slot.png)
+
+* slave应该根据master page响应数据包来调整自己的rx/tx timing(时序?)
+
+### 2.5 Inquiry scan物理频道
+
+虽然在建立连接前master和slave的角色是尚未定义的, 此时
+
+* master表示inquiring设备
+* slave表示inquiry scanning设备
+
+#### 2.5.1 Clock for inquiry
+
+用于inquiry和inquiry scan的时钟应该都是设备本身的本地时钟CLKN
+
+#### 2.5.2 Hopping characteristics
+
+inquiry scan物理频道使用的hopping pattern
+
+* 是一个短的伪随机hopping序列, 由通用inquiry access code(接入码?)决定
+
+inquiry scan物理频道的timing由scanning设备的CLKN决定
 
 # Part C: Link Manager Protocol Specification
 
