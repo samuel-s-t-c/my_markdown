@@ -326,9 +326,9 @@ page scan物理频道的timing由scanning设备的CLKN决定
 
 更多见2.6节
 
-#### 2.4.3 paging过程的timing
+#### 2.4.3 paging procedure timing
 
-在paging过程中, master应该传送paging信息, 与要连接的slave相关.
+在paging过程中, master应该传送paging message, 与要连接的slave相关.
 
 * 由于paging信息是一个很短的数据包, hop速率是3200跳每秒;
   * 在单个tx slot区间中, paging设备应该在两个不同的hop频率上传送.
@@ -371,7 +371,19 @@ inquiry scan物理频道使用的hopping pattern
 
 * 是一个短的伪随机hopping序列, 由通用inquiry access code(接入码?)决定
 
-inquiry scan物理频道的timing由scanning设备的CLKN决定
+inquiry scan物理频道的timing由scanning设备的本地时钟CLKN决定
+
+更多见2.6节
+
+#### 2.5.3 Inquiry procedure timing
+
+在inquiry过程中, master应该传送inquiry message, 其中包含通用或专用inquiry access code.
+
+inquiry的timing与paging的一样(见2.4.3节)
+
+#### 2.5.4 Inquiry response timing
+
+
 
 # Part C: Link Manager Protocol Specification
 
