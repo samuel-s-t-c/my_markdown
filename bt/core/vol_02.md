@@ -309,7 +309,7 @@ CLK是将CLKR加上time_base_offset和slave_offset得到的
 
 #### 2.4.1 用于paging的CLKE
 
-paging设备的CLKE是page scanning设备的CLKN的估计时钟
+paging设备的CLKE是page scanning设备的CLKN的估计时钟\
 
 * paging设备, 也就是pager; page scanning设备, 也就是recipient
 * 使用recipient的CLKN, pager可以加快连接建立的速度
@@ -383,7 +383,89 @@ inquiry的timing与paging的一样(见2.4.3节)
 
 #### 2.5.4 Inquiry response timing
 
+* 在收到master的inquiry message的$625{\mu}s$后, slave发送inquiry response packet
+  * 与inquiry response packet的开头相隔$1250{\mu}s$后, slave可以传送extended inquiry response packet
 
+![timing_of_inquiry_response_packets_on_successful_inquiry_in_first_half_slot](vol_02.assets/timing_of_inquiry_response_packets_on_successful_inquiry_in_first_half_slot.png)
+
+![timing_of_inquiry_response_packets_on_successful_inquiry_in_second_half_slot](vol_02.assets/timing_of_inquiry_response_packets_on_successful_inquiry_in_second_half_slot.png)
+
+### 2.6 Hop selection
+
+已定义的跳跃序列共有6种: 5种用于基本跳跃系统, 1种用于适应性跳频(adaptive frequency hopping, AFH)
+
+* page跳跃序列: 平均分布在79MHz中的32个唤醒频率(wake-up frequency); 周期长度为32
+* page response跳频序列: 有32个频率, 每个频率都与当前page跳频序列的频率一一对应
+* inquiry跳跃序列: 平均分布在79MHz中的32个唤醒频率(wake-up frequency); 周期长度为32
+* inquiry response跳跃序列: 有32个频率, 每个频率都与当前inquiry跳频序列的频率一一对应
+* 基本频道跳跃序列: 在短时间内将79个频率平均分布在79MHz中; 周期长度很长, 因此在短时间不会有重复的模式.
+* 适应频道(adapted channel)跳跃序列: 从基本频道跳频序列衍生得到的; 频率数量可以小于79个.
+
+此外, 定义了一组同步train RF频道, 带有3个固定频率
+
+#### 2.6.1 General selection scheme
+
+![general_block_diagram_of_hop_selection_scheme](vol_02.assets/general_block_diagram_of_hop_selection_scheme.png)
+
+* 时钟输入的来源取决于被选择的跳跃序列; 此外, 每个跳跃序列使用时钟的不同位, 见表2.2(在2.6.4节)
+* 地址输入(UAP/LAP)有28位, 见表2.3(在2.6.4节)
+* N, interlace_offset和$k_{offset}$的定义见2.6.4节
+* sequence selection可以是以下的值
+  * page, page scan, slave page response, master page response
+  * inquiry, inquiry scan, inquiry response
+  * basic channel, adapted channel
+* AFH_channel_map: 在对适应频道跳跃序列进行选择时使用. 见2.6.3节
+
+* RF channel index, 是映射到RF频道频率, 使用表2.1的等式; 输出的index是伪随机的
+
+该选择方案会从频带中选择长度为64MHz的频段, 有32个hop频率; 以伪随机顺序访问这些频率. 然后, 会选择不同的32-hop频段
+
+* 在page, master page response, slave page response, page scan, inquiry, inquiry response和inquiry scan跳频序列中, 32-hop频段根据地址来选择的, 而且只是使用该32-hop频段
+  * 不同设备由不同的paging频段
+* 对于基本频道跳跃序列, 输出是一个有79-hop的伪随机序列
+
+* 图示![hop_selection_scheme_in_connection_state](vol_02.assets/hop_selection_scheme_in_connection_state.png)
+
+在传送数据包的过程中, RF频率是不变的; 时钟输入是数据包的第一个slot中的时钟值
+
+* ![single_and_multi_slot_packets](vol_02.assets/single_and_multi_slot_packets.png)
+
+使用适应频道跳跃序列时, 该序列只包含AFH_channel_map所定义的RF频道集合的频率
+
+* AFH的相同频道机制(same channel mechanism): master在某一频道上传送数据包后, slave可以紧接着在相同频道传送响应数据包
+
+* 示例![example_of_same_channel_mechanism](vol_02.assets/example_of_same_channel_mechanism.png)
+
+#### 2.6.2 Selection kernel
+
+basic hop selection kernel, 如图所示
+
+* 用于page, page response, inquiry, inquiry response 和基本频道跳跃选择内核
+* **适应频道跳跃选择内核**见2.6.3节
+
+![block_diagram_of_the_basic_hop_selection_kernel](vol_02.assets/block_diagram_of_the_basic_hop_selection_kernel.png)
+
+* `X`用于确定32-hop频段的phase
+* `Y1`和`Y2`用于选择master-to-slave或slave-to-master
+* `A`到`D`用于确定顺序
+* `E`和`F`用于确定如何映射到跳跃序列上
+* 在进行计算后, 内核根据结果对一个RF频道索引列表进行寻址
+  * 该列表的RF频道索引顺序是: 先将偶数索引按升序排列, 然后将奇数索引按升序排列
+
+* 具体说明: 见2.6.2.*节
+
+#### 2.6.3 Adapted hop selection kernel
+
+适应跳跃选择内核是基于基本跳跃选择内核的; 为了达到跳跃序列的适应性, 与基本跳跃选择内核相比有以下两种额外的功能
+
+* 不得使用的RF频道会被重新映射到可以使用的RF频道上; 详情见2.6.3.1节
+* AFH的相同频道机制
+
+#### 2.6.4 Control word
+
+![control_for_hop_system](vol_02.assets/control_for_hop_system.png)
+
+![address_bits_for_each_sequence_selection_input](vol_02.assets/address_bits_for_each_sequence_selection_input.png)
 
 # Part C: Link Manager Protocol Specification
 
