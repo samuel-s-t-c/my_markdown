@@ -467,6 +467,201 @@ basic hop selection kernel, 如图所示
 
 ![address_bits_for_each_sequence_selection_input](vol_02.assets/address_bits_for_each_sequence_selection_input.png)
 
+### 2.7 Synchronization scan physical channel
+
+#### 2.7.1 跳频特性
+
+* 只使用索引为0, 24, 78的这三个固定RF频道
+
+* 每个独立的scan window使用的RF频道与前两个window的不同
+
+#### 2.7.2 synchronization train过程
+
+只在connectionless slave broadcast和coarse clock adjustment recovery模式下使用
+
+master应该向三个固定RF频道传送synchronization train包
+
+* 该类数据包的传送与其他数据包的传送是相互独立的
+
+对于每个RF频道, master应该
+
+* 建立synchronization train事件; 该事件被$T_{Sync\_Train\_Interval}$个slot分隔
+  * 在coarse clock adjustment recovery模式下, $T_{Sync\_Train\_Interval}=32$
+  * 其他情况下, $T_{Sync\_Train\_Interval}$的值由controller来决定
+* 在每一对synchronization train事件之间, 尝试发送一个synchronization train包; 不能发送超过一个包
+  * synchronization train包的传送应该在$CLK[1:0]=0b00$的slot开始
+* 没有调度冲突时, 延迟传送synchronization train包:  共延迟synchronization train事件的$T_{Sync\_Train\_Delay}$个slot
+  * $T_{Sync\_Train\_Delay}$应该是偶整数
+  * $T_{Sync\_Train\_Delay}$是伪随机数, 范围是0至$T_{Sync\_Train\_Delay\_Max}$
+  * $T_{Sync\_Train\_Delay}$不应该大于等于$T_{Sync\_Train\_Interval}$
+  * 在coarse clock adjustment recovery模式下, $T_{Sync\_Train\_Delay\_Max}$应该是4; 其他情况下, 为16
+* 如果synchronization train包的传送与高优先级的数据包的timing发生冲突, 可以调整延迟来避免冲突; 如果无法避免, 则不进行传送
+* 对于相连的三个synchronization train包, 实际使用的延迟不应该都相同
+  * 可以有两个延迟相同
+* Note: 在符合上述要求的同时, 不同RF频道上的synchronization train事件可以分别进行管理, 也可以统一使用相同的$T_{Sync\_Train\_Delay}$
+* 下图展示在单个RF频道上两个相邻的synchronization train包的timing关系![synchronization_train_packet_timing_on_a_single_channel](vol_02.assets/synchronization_train_packet_timing_on_a_single_channel.png)
+
+#### 2.7.3 synchronization scan过程
+
+* 对于每个scan window, 设备进行监听$T_{Sync\_Scan\_Window}$个slot
+* scan window只在固定的三个RF频道上
+* 每个scan window应该是连续的, 不被其他活动打断
+* 相邻的scan window之间的间隔是$T_{Sync\_Scan\_Interval}$
+
+![synchronization_scan_timing](vol_02.assets/synchronization_scan_timing.png)
+
+## 3 物理链路
+
+物理链路, 表示设备之间的一个基带连接(baseband connection)
+
+* 一条物理链路总是与一条物理频道关联
+* 某条物理链路的共同属性, 应用于在某条物理链路上的所有逻辑传输
+
+除了connectionless slave broadcast物理链路, 物理链路的共同属性有
+
+* power control, 功率控制
+* link supervision, 链路监控
+* encryption, 加密
+* channel quality-driven data rate change, 频道的质量驱动的数据率改变
+* multi-slot packet control, 多slot数据包控制
+* (在adapted piconet物理频道的物理链路) AFH channel map
+
+connectionless slave broadcast物理链路
+
+* 与BR/EDR adapted piconet物理频道关联
+* 与CSB逻辑传输关联
+* 不支持LMP(Link Manager protocol)
+* link supervision(见3.2节)
+* 由host控制多slot数据包
+
+### 3.1 Link supervision for active physical links
+
+> 连接中断的原因有多种, 如设备离开有效范围, 遇到严重干扰等.
+
+为了能够检测到link loss(链路丢失), master和slave都应该使用一个链路监控定时器($T_{suppervision}
+$)
+
+* 每当在物理链路上接收到一个带有slave地址的有效数据包头时, 重置该物理链路的链路监控定时器
+* 在连接状态的任意时刻, 如果链路监控定时器达到supervisionTO值,  该连接应该被认为是断开的
+* 链路监控定时器同样用于SCO, eSCO和ACL逻辑传输
+
+supervisionTO超时时间
+
+* 由link manager(链路管理器)协商得到的
+* 其值的设置应该使得监控超时时间比hold and sniff周期长
+
+### 3.2 Link supervision for connectionless slave broadcast physical links
+
+对于CSB物理链路, 只有slave监控该链路, 使用CSB链路监控定时器($T_{CSB\_Supervision}$)
+
+* 每当slave接收到带有有效包头的CSB数据包时, slave应该重置定时器
+* 在连接状态的CSB模式的任意时刻, 如果链路监控定时器达到CSB\_supervisionTO值,  该连接应该被认为是断开的
+  * CSB\_supervisionTO的值由host提供
+
+### 3.3 Authenticated payload timeout for active links
+
+## 4 Logical transports
+
+### 4.1 General
+
+在master和slave之间会建立不同类型的逻辑传输; 已定义的五种逻辑传输
+
+* SCO: Synchronous Connection-Oriented logical transport, 面对连接的同步逻辑传输
+* eSCO: Extended Synchronous Connection-Oriented logical transport, 面对连接的扩展同步逻辑传输
+* ACL: Asynchronous Connection-Oriented logical transport, 面对连接的异步逻辑传输
+* ASB: Active Slave Broadcast logical transport, 活动slave广播逻辑传输
+* CSB: Connectionless Slave Broadcast logical transport, 无连接slave广播逻辑传输
+
+同步逻辑传输(SCO, eSCO)
+
+* 是在微微网中一个master和一个slave之间的点对点的逻辑传输
+* 支持有时间限制的信息, 如语言, 一般同步数据
+* master维护同步逻辑传输, 使用保留的slot作为定期间隔
+  * 此外, eSCO在保留slot后可以有一个重新传送窗口
+
+ACL逻辑传输
+
+* 是在微微网中一个master和一个slave之间的点对点的逻辑传输
+* 在没有保留给同步逻辑传输的slot中, master可以在每个slot的基础上与任一slave建立ACL逻辑传输
+
+ASB逻辑传输
+
+* 作用: master与active slave进行通讯
+
+CSD逻辑传输
+
+* 作用: master向零个或多个slave发送profile广播数据
+
+### 4.2 Logical transport address(LT_ADDR)
+
+* 每个在微微网中活跃的slave被赋予一个首要的3位逻辑传输地址(LT_ADDR)
+  * 当slave被激活时, master应该给该slave赋予一个首要LT_ADDR; 也就是说, 在连接建立时或角色切换时首要LT_ADDR放在FHS载荷上
+
+* 全为0的LT_ADDR被保留用于ASB广播信息
+* CSB逻辑传输使用一个非零LT_ADDR
+* master没有LT_ADDR;master相对于slave的timing能够区分出master和slave
+
+* 在微微网中eSCO逻辑传输的slave被赋予一个次要的LT_ADDR, 不为零
+  * 只有eSCO traffic(通信量)可以在这些LT_ADDR上发送
+
+* ACL通信量(包含LMP)应该总是在首要LT_ADDR上发送
+* 一个slave应该只接收广播包和这样的数据包: 数据包中的首要或次有LT_ADDR与该slave匹配
+* 只有slave处于active模式, 其LT_ADDR才会是有效的
+* 断开连接后, slave应该失去它的所有LT_ADDR
+
+除了全为零的LT_ADDR, 其他LT_ADDR要么是未使用, 要么是被用于以下三种情况
+
+* 作为首要LT_ADDR
+* 作为次要LT_ADDR
+* 用于CSB逻辑传输
+
+### 4.3 Synchronous logical transports
+
+SCO逻辑传输
+
+* 是一种对称的, 点对点的, 在master和某一slave之间的传输
+* SCO逻辑传输保留了slot, 可以被认为是master与slave之间的电路交换连接
+
+* master可以支持最多3条SCO链路, (与同一slave或与不同slave)
+* slave可以支持来自同一master的最多3条SCO链路, 或者来自不同master的2条SCO链路
+* SCO包不会重新传送
+
+eSCO逻辑传输
+
+* 是一种点对点的, 在master和某一slave之间的传输
+* eSCO逻辑传输可以是对称的, 也可以是非对称的
+* eSCO逻辑传输保留了slot, 可以被认为是master与slave之间的电路交换连接
+* eSCO支持重新传送; 在保留slot后面可以紧跟一个重传窗口
+  * 也就是说, 保留slot和重传窗口一起构成了eSCO窗口
+
+### 4.4 Asynchronous logical transport
+
+* 在每个非保留slot中, master可以与任一slave交换数据包
+* ACL逻辑传输支持异步服务和等时服务
+* 在任意两个设备之间应该只存在一个ACL逻辑传输
+* 对于绝大多数ACL包, 数据包重传用于保证数据完整
+* 不是发送给特定slave的ACL数据包, 即LT_ADDR=0, 被认为是广播包, 因此应该被每个slave接收
+  * 除了只有CSD逻辑传输的slave
+* 如果没有数据在ACL传输上发送, 且没有要求进行轮询, 则不要求传送
+
+### 4.5 Transmit/receive routines
+
+该节描述如何使用数据包来支持ACL, SCO和eSCO逻辑传输的通信量; 同时考虑到单一slave和多slave的配置
+
+此外, 描述如何使用TX/RX routine的buffer
+
+* 4.5.1节和4.5.2节中TX/RX routine仅用作辅助信息
+
+#### 4.5.1 TX routine
+
+* 在master中, 每个slave都有一个单独的异步buffer; 此外, 每个同步
+
+##### 4.5.1.1
+
+#### 4.5.2 RX routine
+
+#### 4.5.3 Flow control
+
 # Part C: Link Manager Protocol Specification
 
 # Part F: Message Sequence Charts
@@ -474,3 +669,4 @@ basic hop selection kernel, 如图所示
 # Part G: Sample Data
 
 # Part H: Security Specification
+
