@@ -575,14 +575,14 @@ supervisionTO超时时间
 同步逻辑传输(SCO, eSCO)
 
 * 是在微微网中一个master和一个slave之间的点对点的逻辑传输
-* 支持有时间限制的信息, 如语言, 一般同步数据
+* 通常用于传输有时间限制的信息, 如语言, 一般同步数据
 * master维护同步逻辑传输, 使用保留的slot作为定期间隔
-  * 此外, eSCO在保留slot后可以有一个重新传送窗口
+  * 此外, eSCO在保留slot后可以紧跟一个重新传送窗口
 
 ACL逻辑传输
 
 * 是在微微网中一个master和一个slave之间的点对点的逻辑传输
-* 在没有保留给同步逻辑传输的slot中, master可以在每个slot的基础上与任一slave建立ACL逻辑传输
+* 在没有保留给同步逻辑传输的slot中, master以每个slot为基础来与任一slave建立ACL逻辑传输
 
 ASB逻辑传输
 
@@ -595,19 +595,21 @@ CSD逻辑传输
 ### 4.2 Logical transport address(LT_ADDR)
 
 * 每个在微微网中活跃的slave被赋予一个首要的3位逻辑传输地址(LT_ADDR)
-  * 当slave被激活时, master应该给该slave赋予一个首要LT_ADDR; 也就是说, 在连接建立时或角色切换时首要LT_ADDR放在FHS载荷上
-
-* 全为0的LT_ADDR被保留用于ASB广播信息
-* CSB逻辑传输使用一个非零LT_ADDR
-* master没有LT_ADDR;master相对于slave的timing能够区分出master和slave
-
+  * 当slave被激活时, master应该给该slave赋予一个首要LT_ADDR; 具体是, 在连接建立时或角色切换时, 首要LT_ADDR放在FHS载荷中, 发送给slave
+  * 全为0的LT_ADDR被保留用于ASB广播信息
+  * CSB逻辑传输使用一个非零LT_ADDR
+  * master没有LT_ADDR;master相对于slave的timing能够区分出master和slave
+  * ACL流量(包含LMP)应该只使用首要LT_ADDR
+  
 * 在微微网中eSCO逻辑传输的slave被赋予一个次要的LT_ADDR, 不为零
   * 只有eSCO traffic(流量)可以在这些LT_ADDR上发送
 
-* ACL流量(包含LMP)应该总是在首要LT_ADDR上发送
-* 一个slave应该只接收广播包和这样的数据包: 数据包中的首要或次有LT_ADDR与该slave匹配
+其他说明
+
+* LT_ADDR: 放在数据包头中传输
 * 只有slave处于active模式, 其LT_ADDR才会是有效的
 * 断开连接后, slave应该失去它的所有LT_ADDR
+* 一个slave应该只接收广播包和这样的数据包: 数据包中的首要或次有LT_ADDR与该slave匹配
 
 除了全为零的LT_ADDR, 其他LT_ADDR要么是未使用, 要么是被用于以下三种情况
 
@@ -622,7 +624,7 @@ SCO逻辑传输
 * 是一种对称的, 点对点的, 在master和某一slave之间的传输
 * SCO逻辑传输保留了slot, 可以被认为是master与slave之间的电路交换连接
 
-* master可以支持最多3条SCO链路, (与同一slave或与不同slave)
+* master可以支持最多3条 (与同一slave或与不同slave的)SCO链路,
 * slave可以支持来自同一master的最多3条SCO链路, 或者来自不同master的2条SCO链路
 * SCO包不会重新传送
 
@@ -640,13 +642,13 @@ eSCO逻辑传输
 * ACL逻辑传输支持异步服务和等时服务
 * 在任意两个设备之间应该只存在一个ACL逻辑传输
 * 对于绝大多数ACL包, 数据包重传用于保证数据完整
-* 不是发送给特定slave的ACL数据包, 即LT_ADDR=0, 被认为是广播包, 因此应该被每个slave接收
+* 不是寻址到特定slave的ACL数据包, 即LT_ADDR=0, 被认为是广播包, 因此应该被每个slave接收
   * 除了只有CSD逻辑传输的slave
 * 如果没有数据在ACL传输上发送, 且没有要求进行轮询, 则不要求传送
 
 ### 4.5 Transmit/receive routines
 
-该节描述如何使用数据包来支持ACL, SCO和eSCO逻辑传输的流量; 同时考虑到单一slave和多slave的配置
+该节描述如何使用数据包来支持ACL, SCO和eSCO逻辑传输的流量; 并且考虑到单一slave和多slave的情况
 
 此外, 描述如何使用TX/RX routine的buffer
 
@@ -657,7 +659,7 @@ eSCO逻辑传输
 * 每个异步逻辑传输和同步逻辑传输都单独执行TX routine
 
 * 在master中, 每个slave都有一个单独的TX异步buffer; 此外, 每个同步slave可以有一个或多个TX同步buffer
-  * SCO和eSCO逻辑传输可以共用一个TX同步buffer, 也可以各自使用一个TX同步buffer
+  * 不同的SCO或eSCO逻辑传输可以共用一个TX同步buffer, 也可以各自使用一个TX同步buffer
 * TX buffer有两个FIFO寄存器; link controller可以交换这两个寄存器的角色
   * current寄存器: link controller可以访问和读取该寄存器, 用来构成数据包
   * next寄存器: baseband resource manager可以访问该寄存器, 用来加载新信息
@@ -667,9 +669,24 @@ eSCO逻辑传输
 
 ##### 4.5.1.1 ACL流量
 
+对于异步数据, 只考虑使用TX ACL buffer; 此时能使用的数据包类型为DM或DH
+
+* DM和DH数据包的长度是可变的, 在payload头中指明实际的长度
+
+纯数据流程(puer data traffic)的默认数据包类型是NULL
+
+* 若没有要发送的数据, 没有要轮询的slave, 则会发送NULL数据包; 这是为了向其他设备发送link控制信息
+* 如果连link控制信息都是不需要发送, 则不会发送数据包
+
+使用TX ACL buffer时, TX routine的过程
+
+1. baseband resource manager将新的数据信息加载到next寄存器
+2. baseband resource manager向link controller发送一条命令, 使得S1开关切换
+3. 当payload需要发送时, packet composer(数据包组装器)读取current寄存器, 并根据数据包类型构建payload
+
 ##### 4.5.1.2 SCO流量
 
-##### 4.5.1.3 data/voice混合流量
+##### 4.5.1.3 data/voice合并流量
 
 ##### 4.5.1.4 eSCO流量
 
