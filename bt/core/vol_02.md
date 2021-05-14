@@ -667,34 +667,53 @@ eSCO逻辑传输
 
 下图展示了一个异步buffer和一个同步buffer![functional_diagram_of_tx_buffering](vol_02.assets/functional_diagram_of_tx_buffering.png)
 
-##### 4.5.1.1 ACL流量
+## 5. Logical link
 
-对于异步数据, 只考虑使用TX ACL buffer; 此时能使用的数据包类型为DM或DH
+几种logical link
 
-* DM和DH数据包的长度是可变的, 在payload头中指明实际的长度
+* Link Control(LC): 映射到在数据包的头部中
+* ACL Control(ACL-C and ASB-C)
+* User Asynchronous/Isochronous(ACL-U and ASB-U)
+* User Synchronous(SCO-S)
+* User Extended Synchronous(eSCO-S)
+* Profile Broadcast Data(PBD)
 
-纯数据流程(puer data traffic)的默认数据包类型是NULL
+## 6. Packets
 
-* 若没有要发送的数据, 没有要轮询的slave, 则会发送NULL数据包; 这是为了向其他设备发送link控制信息
-* 如果连link控制信息都是不需要发送, 则不会发送数据包
+BR数据包的三种形式
 
-使用TX ACL buffer时, TX routine的过程
+* 只有缩写的access code
+* access code + header
+* access code + header + payload
+* ![general_basic_rate_packet_format](vol_02.assets/general_basic_rate_packet_format.png)
 
-1. baseband resource manager将新的数据信息加载到next寄存器
-2. baseband resource manager向link controller发送一条命令, 使得S1开关切换
-3. 当payload需要发送时, packet composer(数据包组装器)读取current寄存器, 并根据数据包类型构建payload
+EDR的通用格式
 
-##### 4.5.1.2 SCO流量
+![general_enhanced_data_rate_packet_format](vol_02.assets/general_enhanced_data_rate_packet_format.png)
 
-##### 4.5.1.3 data/voice合并流量
+bit ordering: 小端格式
 
-##### 4.5.1.4 eSCO流量
+* LSB对应于$b_0$
+* LSB是第一个发送的bit
 
-##### 4.5.1.5 默认数据包类型
+### 6.3 Access code
 
-#### 4.5.2 RX routine
+![access_code_format](vol_02.assets/access_code_format.png)
 
-#### 4.5.3 Flow control
+### 6.4 Packet header
+
+下图的18位header经过rate 1/3 FEC编码后变成54位header
+
+![header_format](vol_02.assets/header_format.png)
+
+* LT_ADDR: logical transport address
+* TYPE: type code
+* FLOW: flow control
+* ARQN: acknowledge indication
+* SEQN: sequence number
+* HEC: header error check
+
+
 
 # Part C: Link Manager Protocol Specification
 
