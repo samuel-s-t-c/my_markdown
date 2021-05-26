@@ -32,7 +32,7 @@ ADT的基本思想
 操作:
 
 * 查找和访问操作: `Find`, `FindKth`
-* 插入和删除操作: `Insert`, ``Delete`
+* 插入和删除操作: `Insert`, `Delete`
 
 ## 线性表: 基于数组的简单实现
 
